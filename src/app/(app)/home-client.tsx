@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CreditCard, CalendarDays, PawPrint, UserRound, Sparkles, LogIn } from "lucide-react";
+import { CreditCard, CalendarDays, PawPrint, Sparkles, LogIn } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
+import type { Database } from "@/types/database";
+
+type Booking = Database["public"]["Tables"]["bookings"]["Row"];
+type Dog = Pick<Database["public"]["Tables"]["dogs"]["Row"], "id" | "name">;
+type Station = Pick<Database["public"]["Tables"]["stations"]["Row"], "id" | "name">;
 
 export default function HomeClient() {
-  const supabase = tryCreateSupabaseBrowserClient();
+  const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
   const [isLogged, setIsLogged] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [balanceCredits, setBalanceCredits] = useState<number | null>(null);
+  const [upcoming, setUpcoming] = useState<Booking[]>([]);
+  const [dogNames, setDogNames] = useState<Record<string, string>>({});
+  const [stationNames, setStationNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function checkAuth() {
@@ -20,10 +30,50 @@ export default function HomeClient() {
       }
       const { data } = await supabase.auth.getSession();
       setIsLogged(!!data.session);
+      setUserId(data.session?.user.id ?? null);
       setLoading(false);
     }
     void checkAuth();
   }, [supabase]);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      if (!supabase || !userId) return;
+
+      const [{ data: wallet }, { data: bookings }] = await Promise.all([
+        supabase.from("wallets").select("balance_credits").eq("customer_id", userId).maybeSingle(),
+        supabase
+          .from("bookings")
+          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at")
+          .eq("customer_id", userId)
+          .in("status", ["PENDING", "CONFIRMED"])
+          .gte("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true })
+          .limit(5)
+      ]);
+
+      setBalanceCredits(wallet?.balance_credits ?? 0);
+      setUpcoming(bookings ?? []);
+
+      const dogIds = Array.from(new Set((bookings ?? []).map((b) => b.dog_id))).filter(Boolean);
+      const stationIds = Array.from(new Set((bookings ?? []).map((b) => b.station_id))).filter(Boolean);
+
+      const [dogsRes, stationsRes] = await Promise.all([
+        dogIds.length ? supabase.from("dogs").select("id, name").in("id", dogIds) : Promise.resolve({ data: [] as Dog[] }),
+        stationIds.length ? supabase.from("stations").select("id, name").in("id", stationIds) : Promise.resolve({ data: [] as Station[] })
+      ]);
+
+      const nextDogNames: Record<string, string> = {};
+      for (const d of (dogsRes.data ?? []) as Dog[]) nextDogNames[d.id] = d.name;
+      setDogNames(nextDogNames);
+
+      const nextStationNames: Record<string, string> = {};
+      for (const s of (stationsRes.data ?? []) as Station[]) nextStationNames[s.id] = s.name;
+      setStationNames(nextStationNames);
+    }
+
+    void loadDashboard();
+  }, [supabase, userId]);
 
   if (loading) {
     return <div className="p-4 text-center text-sm text-slate-400">Caricamento in corso...</div>;
@@ -88,6 +138,8 @@ export default function HomeClient() {
   }
 
   // --- VISTA CLIENTE LOGGATO (DASHBOARD) ---
+  const minutes = Math.max(0, Math.floor(balanceCredits ?? 0));
+
   return (
     <div className="space-y-6">
       <section className="space-y-2">
@@ -104,9 +156,10 @@ export default function HomeClient() {
             <CreditCard className="h-4 w-4 text-blue-300" />
           </div>
           <div className="flex items-baseline gap-1">
-            <p className="text-3xl font-bold tracking-tight">--</p>
+            <p className="text-3xl font-bold tracking-tight">{balanceCredits ?? "--"}</p>
             <p className="text-sm text-slate-400">crediti</p>
           </div>
+          <p className="text-xs text-slate-400">{minutes} minuti stimati</p>
         </CardHeader>
         <CardContent>
           <div className="flex gap-3">
@@ -158,13 +211,45 @@ export default function HomeClient() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-medium">Prossimi appuntamenti</h3>
         </div>
-        <Card>
-          <CardContent className="p-6 text-center text-sm text-slate-400">
-            Nessuna prenotazione futura.
-          </CardContent>
-        </Card>
+        {upcoming.length ? (
+          <div className="grid gap-3">
+            {upcoming.map((b) => {
+              const start = new Date(b.start_time);
+              const end = new Date(b.end_time);
+              const day = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "2-digit", month: "short" }).format(start);
+              const startTime = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit" }).format(start);
+              const endTime = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit" }).format(end);
+              const station = stationNames[b.station_id] ?? "Postazione";
+              const dog = dogNames[b.dog_id] ?? "Cane";
+
+              return (
+                <Card key={b.id}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">
+                          {day} · {startTime}–{endTime}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {station} · {dog}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">{b.total_credits} crediti</p>
+                        <p className="text-xs text-slate-400">{b.status}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center text-sm text-slate-400">Nessuna prenotazione futura.</CardContent>
+          </Card>
+        )}
       </section>
     </div>
   );
 }
-

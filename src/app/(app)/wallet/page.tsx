@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Euro, Gift, Receipt } from "lucide-react";
-import { estimateMinutesFromCredits, useWalletStore, type WalletPackId } from "@/store/wallet-store";
+import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
+
+type WalletPackId = "starter" | "premium" | "max";
 
 const packs: { id: WalletPackId; title: string; subtitle: string; price: string; credits: number; badge: string | null }[] = [
   { id: "starter", title: "Starter", subtitle: "10€ = 10 crediti", price: "10€", credits: 10, badge: null },
@@ -13,8 +16,27 @@ const packs: { id: WalletPackId; title: string; subtitle: string; price: string;
 ];
 
 export default function WalletPage() {
-  const balanceCredits = useWalletStore((s) => s.balanceCredits);
-  const minutes = estimateMinutesFromCredits(balanceCredits);
+  const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
+  const [balanceCredits, setBalanceCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadWallet() {
+      if (!supabase) return;
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+
+      const { data } = await supabase
+        .from("wallets")
+        .select("balance_credits")
+        .eq("customer_id", userData.user.id)
+        .maybeSingle();
+
+      setBalanceCredits(data?.balance_credits ?? 0);
+    }
+    void loadWallet();
+  }, [supabase]);
+
+  const minutes = Math.max(0, Math.floor(balanceCredits ?? 0));
 
   return (
     <div className="space-y-6">
@@ -34,7 +56,7 @@ export default function WalletPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-950/40 p-3 ring-1 ring-inset ring-slate-800">
               <p className="text-xs text-slate-300">Crediti</p>
-              <p className="mt-1 text-2xl font-semibold">{balanceCredits}</p>
+              <p className="mt-1 text-2xl font-semibold">{balanceCredits ?? "--"}</p>
             </div>
             <div className="rounded-xl bg-slate-950/40 p-3 ring-1 ring-inset ring-slate-800">
               <p className="text-xs text-slate-300">Minuti stimati</p>
