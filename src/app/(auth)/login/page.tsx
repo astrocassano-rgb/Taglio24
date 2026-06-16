@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
-import { LogIn, Mail, UserPlus } from "lucide-react";
+import { Apple, LogIn, Mail, UserPlus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -215,6 +215,24 @@ function LoginContent() {
     }
   };
 
+  const signInWithOAuth = async (provider: "google" | "apple") => {
+    if (!supabase) return;
+    setMessage(null);
+    setCanResend(false);
+    setLoading(true);
+    try {
+      const redirectTo = buildAuthCallbackUrl(nextPath);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo }
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      setMessage(toFriendlyMessage(e, `Accesso con ${provider === "google" ? "Google" : "Apple"} non riuscito.`));
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-md px-4 py-10">
       <Card>
@@ -315,9 +333,13 @@ function LoginContent() {
               <Mail className="h-5 w-5" />
               Recupera password
             </Button>
-            <Button className="w-full" variant="secondary" type="button" disabled>
-              <Mail className="h-5 w-5" />
-              Google / Apple (in arrivo)
+            <Button className="w-full" variant="secondary" type="button" onClick={() => void signInWithOAuth("google")} disabled={!isConfigured || loading}>
+              <span className="text-base font-semibold">G</span>
+              Continua con Google
+            </Button>
+            <Button className="w-full" variant="secondary" type="button" onClick={() => void signInWithOAuth("apple")} disabled={!isConfigured || loading}>
+              <Apple className="h-5 w-5" />
+              Continua con Apple
             </Button>
           </div>
 
