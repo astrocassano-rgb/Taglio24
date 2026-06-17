@@ -121,6 +121,7 @@ export type Database = {
           end_time: string;
           status: Database["public"]["Enums"]["booking_status"];
           total_credits: number;
+          assisted: boolean;
           created_at: string;
         };
         Insert: {
@@ -132,6 +133,7 @@ export type Database = {
           end_time: string;
           status?: Database["public"]["Enums"]["booking_status"];
           total_credits: number;
+          assisted?: boolean;
           created_at?: string;
         };
         Update: {
@@ -139,6 +141,7 @@ export type Database = {
           end_time?: string;
           status?: Database["public"]["Enums"]["booking_status"];
           total_credits?: number;
+          assisted?: boolean;
         };
         Relationships: [];
       };
@@ -218,6 +221,57 @@ export type Database = {
         };
         Relationships: [];
       };
+      coupons: {
+        Row: {
+          id: string;
+          code: string;
+          amount_credits: number;
+          max_uses: number | null;
+          current_uses: number;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          amount_credits: number;
+          max_uses?: number | null;
+          current_uses?: number;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          code?: string;
+          amount_credits?: number;
+          max_uses?: number | null;
+          current_uses?: number;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_coupons: {
+        Row: {
+          id: string;
+          customer_id: string;
+          coupon_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          coupon_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          customer_id?: string;
+          coupon_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       admin_customers_overview: {
@@ -261,6 +315,7 @@ export type Database = {
           p_dog_id: string;
           p_start_time: string;
           p_end_time: string;
+          p_assisted?: boolean;
         };
         Returns: {
           booking_id: string;
@@ -322,7 +377,29 @@ export type Database = {
           refund_credits: number;
         }[];
       };
+      redeem_coupon_code: {
+        Args: {
+          p_code: string;
+        };
+        Returns: {
+          applied: boolean;
+          balance_credits: number;
+          amount_credits: number;
+        }[];
+      };
+      extend_booking_session: {
+        Args: {
+          p_booking_id: string;
+          p_extension_minutes: number;
+          p_cost_credits: number;
+        };
+        Returns: {
+          extended: boolean;
+          new_end_time: string;
+          new_balance_credits: number;
+          new_remaining_seconds: number;
+        }[];
+      };
     };
   };
 };
-

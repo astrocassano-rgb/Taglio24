@@ -55,7 +55,7 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
 
   let query = supabase
     .from("bookings")
-    .select("id, customer_id, dog_id, station_id, start_time, end_time, status, total_credits, created_at")
+    .select("id, customer_id, dog_id, station_id, start_time, end_time, status, total_credits, created_at, assisted")
     .order("start_time", { ascending: false });
 
   if (fromRaw && isIsoDay(fromRaw)) {
@@ -182,9 +182,18 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-slate-50">{timeLabel}</p>
-                      <p className="text-xs text-slate-300">
-                        {station} · {dog} · {customer}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
+                        <span>{station}</span>
+                        <span>·</span>
+                        <span>{dog}</span>
+                        <span>·</span>
+                        <span>{customer}</span>
+                        {b.assisted && (
+                          <span className="rounded bg-blue-500/15 text-blue-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-blue-500/20">
+                            Assistito
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-slate-400">Stato: {b.status} · {b.total_credits} crediti</p>
                     </div>
                     <Link href={`/prenotazioni/${b.id}`} className="shrink-0">

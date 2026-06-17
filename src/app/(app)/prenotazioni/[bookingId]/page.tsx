@@ -140,7 +140,15 @@ export default async function PrenotazioneDettaglioPage({
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-medium text-slate-300">Riepilogo</p>
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${statusTone}`}>{status.label}</span>
+            <div className="flex items-center gap-2">
+              {bookingRecord.assisted && (
+                <span className="rounded-full bg-blue-500/15 text-blue-200 ring-1 ring-inset ring-blue-500/30 px-3 py-1 text-xs font-medium flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Con Assistenza
+                </span>
+              )}
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${statusTone}`}>{status.label}</span>
+            </div>
           </div>
           <p className="text-lg font-semibold tracking-tight">{formatDay(start)}</p>
           <p className="text-sm text-slate-300">
@@ -173,6 +181,11 @@ export default async function PrenotazioneDettaglioPage({
                   <p className="text-base font-semibold text-slate-50">
                     {serviceLabel} · {stationName}
                   </p>
+                  {bookingRecord.assisted && (
+                    <p className="text-[11px] text-blue-400 font-semibold mt-0.5">
+                      Operatore incluso (+15 crediti)
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

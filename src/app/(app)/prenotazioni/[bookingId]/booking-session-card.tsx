@@ -39,6 +39,36 @@ export function BookingSessionCard({ bookingId, startIso, endIso, stationName, c
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [extendPending, setExtendPending] = useState(false);
+  const [extendMessage, setExtendMessage] = useState<string | null>(null);
+  const [alternatives, setAlternatives] = useState<string[]>([]);
+
+  async function extendSession(minutes: number) {
+    setExtendPending(true);
+    setExtendMessage(null);
+    setAlternatives([]);
+    try {
+      const response = await fetch(`/api/bookings/${bookingId}/session/extend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ minutes, costCredits: minutes })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setExtendMessage(payload?.error || "Impossibile estendere la sessione.");
+        if (payload?.code === "OVERLAP_CONFLICT" && Array.isArray(payload?.alternatives)) {
+          setAlternatives(payload.alternatives);
+        }
+        return;
+      }
+      setExtendMessage(`Sessione estesa di +${minutes} minuti con successo!`);
+      router.refresh();
+    } catch {
+      setExtendMessage("Errore durante la richiesta di estensione.");
+    } finally {
+      setExtendPending(false);
+    }
+  }
 
   const bookingCode = useMemo(() => bookingId.replace(/-/g, "").slice(0, 8).toUpperCase(), [bookingId]);
   const nowMs = Date.now();
@@ -141,12 +171,56 @@ export function BookingSessionCard({ bookingId, startIso, endIso, stationName, c
         </div>
 
         {activeSession ? (
-          <div className="rounded-3xl bg-emerald-500/10 p-4 ring-1 ring-inset ring-emerald-500/30">
-            <p className="text-sm font-medium text-emerald-200">Sessione attiva su {stationName}</p>
-            <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-50">
-              <SessionCountdown activatedAt={activeSession.activated_at} remainingSeconds={activeSession.remaining_seconds} />
-            </p>
-            <p className="mt-1 text-sm text-slate-300">Alla scadenza la sessione va chiusa lato struttura o passa allo step successivo operativo.</p>
+          <div className="rounded-3xl bg-emerald-500/10 p-4 ring-1 ring-inset ring-emerald-500/30 space-y-4">
+            <div>
+              <p className="text-sm font-medium text-emerald-200">Sessione attiva su {stationName}</p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-50">
+                <SessionCountdown activatedAt={activeSession.activated_at} remainingSeconds={activeSession.remaining_seconds} />
+              </p>
+              <p className="mt-1 text-sm text-slate-300">Alla scadenza la sessione va chiusa lato struttura o passa allo step successivo operativo.</p>
+            </div>
+            
+            <div className="border-t border-emerald-500/25 pt-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Estensione Rapida Sessione</p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl"
+                  onClick={() => void extendSession(10)}
+                  disabled={extendPending}
+                >
+                  +10 Min (10 cr)
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 rounded-xl"
+                  onClick={() => void extendSession(15)}
+                  disabled={extendPending}
+                >
+                  +15 Min (15 cr)
+                </Button>
+              </div>
+
+              {extendMessage && (
+                <p className="text-xs font-medium text-slate-200 mt-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                  {extendMessage}
+                </p>
+              )}
+
+              {alternatives.length > 0 && (
+                <div className="rounded-xl bg-amber-500/10 p-3 text-xs text-amber-250 border border-amber-500/20 space-y-1">
+                  <p className="font-semibold text-amber-300">⚠️ Spostamento consigliato:</p>
+                  <p>Questa postazione ha un&apos;altra prenotazione subito dopo. Puoi spostarti su una delle seguenti postazioni libere:</p>
+                  <ul className="list-disc list-inside mt-1 font-medium text-slate-200">
+                    {alternatives.map((alt) => (
+                      <li key={alt}>{alt}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="rounded-3xl bg-slate-950/40 p-4 text-sm text-slate-300 ring-1 ring-inset ring-slate-800">

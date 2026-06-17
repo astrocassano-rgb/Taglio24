@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/cn";
 import { CreditCard, Euro, Gift, Receipt } from "lucide-react";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
 
@@ -18,6 +20,38 @@ const packs: { id: WalletPackId; title: string; subtitle: string; price: string;
 export default function WalletPage() {
   const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
   const [balanceCredits, setBalanceCredits] = useState<number | null>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState(false);
+
+  async function handleRedeemCoupon() {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponMessage(null);
+    setCouponSuccess(false);
+
+    try {
+      const res = await fetch("/api/wallet/redeem-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCouponMessage(data.error || "Errore durante il riscatto.");
+        return;
+      }
+      setCouponSuccess(true);
+      setCouponMessage(`Codice riscattato! Ricevuti +${data.amount_credits} crediti.`);
+      setCouponCode("");
+      setBalanceCredits(data.balance_credits);
+    } catch {
+      setCouponMessage("Impossibile riscattare il codice.");
+    } finally {
+      setCouponLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function loadWallet() {
@@ -69,6 +103,37 @@ export default function WalletPage() {
               Vedi movimenti
             </Button>
           </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="space-y-1">
+          <p className="text-xs font-medium text-slate-300">Promozione</p>
+          <p className="text-lg font-semibold tracking-tight">Riscatta codice</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Inserisci codice (es. BENVENUTO5)"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              className="h-11"
+              disabled={couponLoading}
+            />
+            <Button
+              variant="primary"
+              className="h-11 px-4"
+              onClick={() => void handleRedeemCoupon()}
+              disabled={!couponCode.trim() || couponLoading}
+            >
+              Riscatta
+            </Button>
+          </div>
+          {couponMessage && (
+            <p className={cn("text-xs font-medium", couponSuccess ? "text-emerald-400" : "text-rose-400")}>
+              {couponMessage}
+            </p>
+          )}
         </CardContent>
       </Card>
 

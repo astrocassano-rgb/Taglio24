@@ -12,7 +12,8 @@ const navItems = [
   { href: "/admin/kiosk", label: "Kiosk" },
   { href: "/admin/clienti", label: "Clienti" },
   { href: "/admin/pagamenti", label: "Pagamenti" },
-  { href: "/admin/postazioni", label: "Postazioni" }
+  { href: "/admin/postazioni", label: "Postazioni" },
+  { href: "/admin/coupons", label: "Coupons" }
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

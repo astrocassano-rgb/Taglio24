@@ -135,6 +135,7 @@ export default function PrenotaPage() {
 
   // Stato modale di conferma
   const [confirmSlot, setConfirmSlot] = useState<CustomSlot | null>(null);
+  const [assisted, setAssisted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookingMessage, setBookingMessage] = useState<string | null>(null);
   const [successSummary, setSuccessSummary] = useState<string | null>(null);
@@ -472,6 +473,7 @@ export default function PrenotaPage() {
     
     // Se loggato, apre la modale di conferma
     setConfirmSlot(slot);
+    setAssisted(false);
     setBookingMessage(null);
     setSuccessSummary(null);
   };
@@ -481,8 +483,9 @@ export default function PrenotaPage() {
     if (!confirmSlot) return 0;
     const station = stations.find((s) => s.id === confirmSlot.stationId);
     const costPerMin = station?.cost_per_minute ?? 1;
-    return durationMinutes * costPerMin;
-  }, [confirmSlot, durationMinutes, stations]);
+    const base = durationMinutes * costPerMin;
+    return assisted ? base + 15 : base;
+  }, [confirmSlot, durationMinutes, stations, assisted]);
 
   const hasEnoughCredits = useMemo(() => {
     if (balanceCredits === null) return true;
@@ -500,7 +503,8 @@ export default function PrenotaPage() {
         p_station_id: confirmSlot.stationId,
         p_dog_id: selectedDogId,
         p_start_time: confirmSlot.start.toISOString(),
-        p_end_time: confirmSlot.end.toISOString()
+        p_end_time: confirmSlot.end.toISOString(),
+        p_assisted: assisted
       } as Database["public"]["Functions"]["create_booking"]["Args"];
 
       const { data, error } = await supabase.rpc("create_booking", args);
@@ -973,6 +977,44 @@ export default function PrenotaPage() {
                       <span className="font-bold text-slate-200">{confirmSlot.stationName}</span>
                     </div>
                   </div>
+
+                  {/* OPZIONE IBRIDA (ASSISTENZA OPERATORE) */}
+                  <button
+                    type="button"
+                    onClick={() => !submitting && setAssisted(!assisted)}
+                    disabled={submitting}
+                    className={cn(
+                      "w-full rounded-2xl p-3 text-left ring-1 ring-inset transition-all duration-200 flex items-center gap-3 relative overflow-hidden active:scale-98 cursor-pointer",
+                      assisted
+                        ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                        : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+                    )}
+                  >
+                    <div className={cn(
+                      "rounded-xl p-2 ring-1 ring-inset shrink-0 transition-colors",
+                      assisted ? "bg-blue-500/20 ring-blue-400/30 text-blue-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+                    )}>
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-bold text-slate-100">Assistenza Operatore</span>
+                        <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-bold text-blue-300 ring-1 ring-inset ring-blue-500/30 shrink-0">
+                          +15 crediti
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-0.5 leading-normal">
+                        Un dipendente DogWash24 laverà e asciugherà il cane al posto tuo.
+                      </p>
+                    </div>
+                    {/* Visual Checkbox */}
+                    <div className={cn(
+                      "h-4 w-4 rounded-full border flex items-center justify-center shrink-0 transition-all",
+                      assisted ? "bg-blue-500 border-blue-400" : "border-slate-700 bg-slate-950"
+                    )}>
+                      {assisted && <CheckCircle2 className="h-2.5 w-2.5 text-white" />}
+                    </div>
+                  </button>
 
                   {/* INFO CREDITI */}
                   <div className="rounded-2xl p-4 bg-slate-950/20 border border-slate-800 flex items-center justify-between gap-4">

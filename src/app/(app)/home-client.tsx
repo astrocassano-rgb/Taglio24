@@ -200,7 +200,7 @@ export default function HomeClient() {
         supabase.from("wallets").select("balance_credits").eq("customer_id", userId).maybeSingle(),
         supabase
           .from("bookings")
-          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at")
+          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at, assisted")
           .eq("customer_id", userId)
           .in("status", ["PENDING", "CONFIRMED"])
           .gte("start_time", new Date().toISOString())
@@ -444,9 +444,16 @@ export default function HomeClient() {
                         <p className="text-sm font-semibold">
                           {day} · {startTime}–{endTime}
                         </p>
-                        <p className="text-xs text-slate-400">
-                          {station} · {dog}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
+                          <span>{station}</span>
+                          <span>·</span>
+                          <span>{dog}</span>
+                          {b.assisted && (
+                            <span className="rounded bg-blue-500/15 text-blue-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-blue-500/20">
+                              Assistito
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold">{b.total_credits} crediti</p>

@@ -3,395 +3,2384 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DogWash24 — Piattaforma Toilettatura H24</title>
-    <meta
-      name="description"
-      content="Piattaforma per toelettatura/lavaggio self-service H24: prenotazioni, wallet crediti, dashboard admin e check-in con QR e kiosk di struttura."
-    />
-    <meta property="og:title" content="DogWash24 — Piattaforma Toilettatura H24" />
-    <meta
-      property="og:description"
-      content="Prenotazioni, wallet crediti, dashboard admin e operatività H24 con check-in QR e sessioni live."
-    />
-    <meta property="og:type" content="website" />
+    <title>DogWash24 — Piattaforma Toilettatura H24 | Prenotazioni, Wallet &amp; Check-in QR</title>
+    <meta name="description" content="DogWash24 è la piattaforma SaaS per toelettatura e lavaggio cani self-service H24: prenotazioni guidate, wallet a crediti, dashboard admin, check-in QR e sessioni live delle postazioni." />
+    <meta name="keywords" content="DogWash24, toelettatura cani, lavaggio cani self service, SaaS pet, prenotazioni cani, wallet crediti, check-in QR, postazioni H24" />
     <meta name="theme-color" content="#020617" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="DogWash24 — Piattaforma Toilettatura H24" />
+    <meta property="og:description" content="Prenotazioni, crediti e operatività in struttura con QR e sessioni live. La piattaforma completa per impianti self-service H24." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dogwash24.it" />
+    <meta property="og:image" content="./logo.png" />
+    <meta name="twitter:title" content="DogWash24 — Piattaforma Toilettatura H24" />
+    <meta name="twitter:description" content="Prenotazioni, crediti e operatività in struttura con QR e sessioni live." />
+    <link rel="icon" href="./favicon-cropped.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet" />
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "DogWash24",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "description": "Piattaforma SaaS per toelettatura e lavaggio cani self-service H24: prenotazioni guidate, wallet a crediti, dashboard admin, check-in QR e sessioni live.",
+          "url": "https://dogwash24.it",
+          "offers": {
+            "@type": "Offer",
+            "price": "150",
+            "priceCurrency": "EUR",
+            "description": "Licenza d'uso da 150€/mese"
+          }
+        },
+        {
+          "@type": "LocalBusiness",
+          "name": "DogWash24",
+          "description": "Piattaforma completa per gestire una toelettatura/lavaggio cani H24 self-service.",
+          "email": "info@dogwash24.it",
+          "url": "https://dogwash24.it"
+        }
+      ]
+    }
+    </script>
     <style>
+      /* ── DESIGN TOKENS ─────────────────────────────────── */
       :root {
-        --bg: #020617;
-        --panel: rgba(2, 6, 23, 0.6);
-        --panel2: rgba(2, 6, 23, 0.4);
-        --ring: rgba(148, 163, 184, 0.18);
-        --text: #e2e8f0;
-        --muted: rgba(226, 232, 240, 0.78);
-        --muted2: rgba(226, 232, 240, 0.6);
-        --blue: #3b82f6;
-        --blue2: rgba(59, 130, 246, 0.18);
+        --bg:        #020617;
+        --bg2:       #0a1628;
+        --card:      rgba(10, 22, 40, 0.6);
+        --card2:     rgba(10, 22, 40, 0.4);
+        --border:    rgba(148, 163, 184, 0.14);
+        --border2:   rgba(148, 163, 184, 0.08);
+        --text:      #e2e8f0;
+        --muted:     rgba(226, 232, 240, 0.72);
+        --muted2:    rgba(226, 232, 240, 0.48);
+        --cyan:      #06b6d4;
+        --teal:      #14b8a6;
+        --cyan-dim:  rgba(6, 182, 212, 0.15);
+        --cyan-dim2: rgba(6, 182, 212, 0.08);
+        --emerald:   #10b981;
+        --emerald-dim: rgba(16, 185, 129, 0.15);
+        --amber:     #f59e0b;
+        --amber-dim: rgba(245, 158, 11, 0.15);
+        --violet-dim: rgba(139, 92, 246, 0.1);
+        --radius:    24px;
+        --radius-sm: 14px;
+        --radius-xs: 10px;
+        --font: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, monospace;
       }
-      * {
-        box-sizing: border-box;
-      }
+
+      /* ── RESET & BASE ──────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
       body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
-          "Segoe UI Emoji";
-        background: radial-gradient(1200px 900px at 20% 0%, rgba(59, 130, 246, 0.18), transparent 60%),
-          radial-gradient(900px 700px at 100% 30%, rgba(34, 197, 94, 0.12), transparent 55%),
-          radial-gradient(900px 700px at 0% 100%, rgba(245, 158, 11, 0.12), transparent 55%),
-          var(--bg);
+        font-family: var(--font);
+        background: var(--bg);
         color: var(--text);
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background-image:
+          radial-gradient(1200px 900px at 20% 0%,   rgba(6,182,212,0.12), transparent 60%),
+          radial-gradient(900px  700px at 100% 30%,  rgba(20,184,166,0.09), transparent 55%),
+          radial-gradient(900px  700px at 0%   100%, rgba(245,158,11,0.08), transparent 55%);
       }
-      a {
-        color: inherit;
+      a { color: inherit; text-decoration: none; }
+      img { display: block; max-width: 100%; }
+
+      /* ── SCROLL PROGRESS ───────────────────────────────── */
+      #scroll-progress {
+        position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+        background: linear-gradient(90deg, var(--cyan), var(--teal));
+        z-index: 9999; transition: width 0.1s linear;
       }
-      .container {
-        max-width: 1040px;
-        margin: 0 auto;
-        padding: 28px 16px 56px;
+
+      /* ── CONTAINER ─────────────────────────────────────── */
+      .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+      .container-sm { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+
+      /* ── GLASS UTILITY ─────────────────────────────────── */
+      .glass {
+        background: var(--card);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
       }
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 14px 16px;
-        border: 1px solid var(--ring);
-        border-radius: 24px;
-        background: var(--panel);
-        backdrop-filter: blur(8px);
+
+      /* ── GRADIENT TEXT ─────────────────────────────────── */
+      .text-gradient {
+        background: linear-gradient(135deg, var(--cyan), var(--teal));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+
+      /* ── GLOW SHADOW ───────────────────────────────────── */
+      .glow { box-shadow: 0 0 40px rgba(6,182,212,0.2), 0 0 80px rgba(6,182,212,0.08); }
+
+      /* ── SECTION HEADING ───────────────────────────────── */
+      .section-heading { text-align: center; margin-bottom: 56px; }
+      .kicker {
+        display: inline-block;
+        font-size: 11px; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--cyan); margin-bottom: 12px;
       }
-      .brand img {
-        width: 96px;
-        height: 96px;
-        border-radius: 18px;
-        border: 1px solid var(--ring);
-        background: rgba(15, 23, 42, 0.7);
+      .section-heading h2 {
+        font-size: clamp(26px, 4vw, 40px);
+        font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+        margin-bottom: 14px;
       }
-      .brand small {
-        display: block;
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        color: var(--muted2);
+      .section-heading p {
+        color: var(--muted); font-size: 16px; max-width: 580px; margin: 0 auto;
       }
-      .brand strong {
-        display: block;
-        font-size: 32x;
-        letter-spacing: -0.01em;
-      }
-      .cta-row {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
+
+      /* ── BUTTONS ───────────────────────────────────────── */
       .btn {
-        display: inline-flex;
+        display: inline-flex; align-items: center; gap: 8px;
+        height: 44px; padding: 0 20px;
+        border-radius: var(--radius-sm);
+        font-weight: 600; font-size: 14px; cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--card2);
+        color: var(--text); text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .btn:hover { border-color: var(--cyan); transform: translateY(-1px); }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--cyan), var(--teal));
+        border-color: transparent; color: #020617; font-weight: 700;
+      }
+      .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(6,182,212,0.35); }
+      .btn-lg { height: 52px; padding: 0 28px; font-size: 15px; border-radius: 16px; }
+      .btn svg { width: 16px; height: 16px; flex-shrink: 0; transition: transform 0.2s; }
+      .btn:hover svg { transform: translateX(2px); }
+
+      /* ── CARD BASE ─────────────────────────────────────── */
+      .card {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card); overflow: hidden;
+      }
+      .card-hover { transition: all 0.3s ease; }
+      .card-hover:hover { transform: translateY(-4px); border-color: rgba(6,182,212,0.3); box-shadow: 0 8px 32px rgba(6,182,212,0.1); }
+
+      /* ── FADE IN UP ANIMATION ──────────────────────────── */
+      .fade-up {
+        opacity: 0; transform: translateY(24px);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+      }
+      .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+      /* ════════════════════════════════════════════════════
+         HEADER
+         ════════════════════════════════════════════════════ */
+      #site-header {
+        position: sticky; top: 0; z-index: 100;
+        padding: 16px 0; transition: padding 0.3s ease;
+      }
+      #site-header.scrolled { padding: 8px 0; }
+      #header-inner {
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        border-radius: 20px; padding: 10px 16px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+      #site-header.scrolled #header-inner {
+        background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border-color: var(--border); box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+      }
+      .header-brand { display: flex; align-items: center; gap: 12px; }
+      .header-logo {
+        width: 40px; height: 40px; border-radius: 12px;
+        background: linear-gradient(135deg, var(--cyan), var(--teal));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; box-shadow: 0 4px 16px rgba(6,182,212,0.3);
+        position: relative; flex-shrink: 0;
+      }
+      .header-logo-dot {
+        position: absolute; top: -2px; right: -2px;
+        width: 10px; height: 10px; border-radius: 50%;
+        background: var(--emerald); border: 2px solid var(--bg);
+      }
+      .brand-name { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+      .brand-sub { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted2); }
+      .header-nav { display: flex; align-items: center; gap: 4px; }
+      .header-nav a {
+        padding: 7px 12px; border-radius: 10px; font-size: 13px; font-weight: 500;
+        color: var(--muted); transition: all 0.2s;
+      }
+      .header-nav a:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+      .header-actions { display: flex; align-items: center; gap: 8px; }
+      #menu-toggle {
+        display: none; background: none; border: 1px solid var(--border);
+        border-radius: 10px; padding: 8px; cursor: pointer; color: var(--text);
+      }
+      #mobile-menu {
+        display: none; flex-direction: column; gap: 4px;
+        margin-top: 8px; padding: 8px; border-radius: 18px;
+        background: var(--card); backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+      }
+      #mobile-menu a {
+        padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500;
+        color: var(--muted); transition: all 0.2s;
+      }
+      #mobile-menu a:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+      #mobile-menu .mobile-ctas { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+      #mobile-menu .mobile-ctas .btn { width: 100%; justify-content: center; }
+
+      @media (max-width: 900px) {
+        .header-nav { display: none; }
+        #menu-toggle { display: flex; align-items: center; }
+        #header-inner { flex-wrap: wrap; }
+      }
+
+      /* ════════════════════════════════════════════════════
+         HERO
+         ════════════════════════════════════════════════════ */
+      #hero {
+        padding: 60px 0 80px; position: relative; overflow: hidden;
+      }
+      .hero-bg-blob {
+        position: absolute; border-radius: 50%; pointer-events: none;
+        filter: blur(120px); z-index: 0;
+      }
+      .hero-grid { display: grid; align-items: center; gap: 48px; position: relative; z-index: 1; }
+      @media (min-width: 900px) {
+        .hero-grid { grid-template-columns: 1.1fr 0.9fr; gap: 48px; }
+      }
+      .hero-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        border-radius: 999px; border: 1px solid var(--border);
+        background: var(--card2); padding: 6px 12px;
+        font-size: 12px; font-weight: 600; color: var(--muted);
+        margin-bottom: 20px;
+      }
+      .hero-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); }
+      #hero h1 {
+        font-size: clamp(32px, 5vw, 58px); font-weight: 900;
+        letter-spacing: -0.04em; line-height: 1.06; margin-bottom: 20px;
+      }
+      #hero p {
+        font-size: 17px; color: var(--muted); max-width: 520px; line-height: 1.65; margin-bottom: 28px;
+      }
+      .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+      .hero-trust { display: flex; flex-wrap: wrap; gap: 16px; }
+      .hero-trust-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--muted); }
+      .hero-trust-item .check { color: var(--emerald); }
+
+      /* Live Station Card */
+      .live-card {
+        background: var(--card); backdrop-filter: blur(20px);
+        border: 1px solid var(--border); border-radius: 28px;
+        padding: 20px; width: 100%; max-width: 340px;
+        position: relative; overflow: hidden;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+        margin: 0 auto;
+      }
+      .live-card-glow {
+        position: absolute; inset: -32px; border-radius: 40px;
+        background: radial-gradient(ellipse at center, rgba(6,182,212,0.2), rgba(20,184,166,0.1), transparent 70%);
+        pointer-events: none; z-index: -1;
+      }
+
+      /* Bubbles */
+      .bubbles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+      .bubble {
+        position: absolute; bottom: 8px; border-radius: 50%;
+        background: rgba(6,182,212,0.25); border: 1px solid rgba(6,182,212,0.4);
+        animation: bubble-rise linear infinite;
+      }
+      @keyframes bubble-rise {
+        0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+        100% { transform: translateY(-300px) scale(0.5); opacity: 0; }
+      }
+
+      .live-header { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+      .live-indicator { display: flex; align-items: center; gap: 6px; }
+      .live-dot { position: relative; width: 10px; height: 10px; }
+      .live-dot::before {
+        content: ''; position: absolute; inset: 0; border-radius: 50%;
+        background: var(--emerald); animation: pulse-ring 2s ease-out infinite;
+      }
+      .live-dot::after {
+        content: ''; position: absolute; inset: 0; border-radius: 50%;
+        background: var(--emerald);
+      }
+      @keyframes pulse-ring {
+        0%   { transform: scale(1); opacity: 0.7; }
+        100% { transform: scale(2.5); opacity: 0; }
+      }
+      .live-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--emerald); }
+      .h24-badge {
+        background: rgba(6,182,212,0.15); color: var(--cyan);
+        border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700;
+      }
+      .live-dog-row {
+        display: flex; align-items: center; gap: 12px; margin-top: 14px;
+        padding: 12px; border-radius: 16px; border: 1px solid var(--border2);
+        background: rgba(255,255,255,0.03); position: relative; z-index: 1;
+      }
+      .dog-avatar {
+        width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        display: flex; align-items: center; justify-content: center; font-size: 22px;
+      }
+      .dog-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+      .dog-service { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+      .check-icon { color: var(--emerald); font-size: 13px; }
+
+      .live-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; position: relative; z-index: 1; }
+      .live-stat-card {
+        padding: 12px; border-radius: 14px; border: 1px solid var(--border2);
+        background: rgba(255,255,255,0.03);
+      }
+      .live-stat-label {
+        font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+        color: var(--muted2); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;
+      }
+      .live-stat-value { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+      .live-progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); margin-top: 6px; overflow: hidden; }
+      .live-progress-bar {
+        height: 100%; border-radius: 3px;
+        background: linear-gradient(90deg, var(--cyan), var(--teal));
+        animation: progress-grow 8s linear forwards;
+      }
+      @keyframes progress-grow { from { width: 30%; } to { width: 78%; } }
+      .wallet-sub { font-size: 10px; color: var(--amber); margin-top: 2px; }
+
+      .live-qr-row {
+        display: flex; align-items: center; gap: 12px; margin-top: 10px;
+        padding: 12px; border-radius: 14px; border: 1px solid var(--border2);
+        background: rgba(255,255,255,0.03); position: relative; z-index: 1;
+      }
+      .qr-grid {
+        width: 58px; height: 58px; border-radius: 8px; background: #fff; padding: 4px; flex-shrink: 0;
+        display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px;
+      }
+      .qr-cell { border-radius: 1px; }
+      .qr-on { background: #1e293b; }
+      .qr-off { background: transparent; }
+      .qr-info { flex: 1; }
+      .qr-label { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+      .qr-label .qr-icon { color: var(--cyan); }
+      .qr-sub { font-size: 10px; color: var(--muted2); margin-top: 2px; }
+      .qr-active { font-size: 9px; font-weight: 700; color: var(--emerald); margin-top: 4px; display: flex; align-items: center; gap: 3px; }
+
+      /* Floating mini cards */
+      .float-card {
+        position: absolute; display: flex; align-items: center; gap: 8px;
+        padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border);
+        background: var(--card); backdrop-filter: blur(12px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        animation: float 4s ease-in-out infinite;
+      }
+      @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+      .float-icon {
+        width: 30px; height: 30px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; font-size: 14px;
+      }
+      .float-text-title { font-size: 11px; font-weight: 700; }
+      .float-text-sub { font-size: 9px; color: var(--muted2); }
+
+      .hero-card-wrapper { position: relative; display: flex; justify-content: center; }
+      @media (min-width: 900px) { .hero-card-wrapper { justify-content: flex-end; } }
+
+      /* ════════════════════════════════════════════════════
+         STATS BAR
+         ════════════════════════════════════════════════════ */
+      #stats {
+        border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        background: rgba(10,22,40,0.4); padding: 48px 0;
+      }
+      .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      @media (min-width: 700px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+      .stat-item { text-align: center; }
+      .stat-value { font-size: clamp(34px, 5vw, 48px); font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+      .stat-label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+      .stat-sub { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+      /* ════════════════════════════════════════════════════
+         HOW IT WORKS
+         ════════════════════════════════════════════════════ */
+      #come-funziona { padding: 96px 0; }
+      .steps-grid { display: grid; gap: 20px; position: relative; }
+      @media (min-width: 600px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1000px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
+      .step-line {
+        display: none; position: absolute; top: 36px; left: 50px; right: 50px; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+      }
+      @media (min-width: 1000px) { .step-line { display: block; } }
+      .step-card {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); padding: 24px; position: relative; overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .step-card:hover { transform: translateY(-4px); border-color: rgba(6,182,212,0.3); }
+      .step-card-glow {
+        position: absolute; top: -32px; right: -32px; width: 120px; height: 120px;
+        border-radius: 50%; pointer-events: none; filter: blur(40px); opacity: 0.6;
+      }
+      .step-icon-wrap {
+        width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--border);
+        background: var(--bg2); display: flex; align-items: center; justify-content: center;
+        font-size: 22px; margin-bottom: 16px;
+      }
+      .step-number { font-family: var(--mono); font-size: 28px; font-weight: 700; color: rgba(255,255,255,0.08); float: right; margin-top: -48px; }
+      .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+      .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+      /* ════════════════════════════════════════════════════
+         FEATURES BENTO
+         ════════════════════════════════════════════════════ */
+      #funzionalita { padding: 96px 0; background: rgba(6,182,212,0.02); }
+      .features-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+      @media (min-width: 640px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1000px) { .features-grid { grid-template-columns: repeat(4, 1fr); } }
+      .feature-card {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); padding: 24px; position: relative; overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      @media (min-width: 1000px) {
+        .feature-card.wide { grid-column: span 2; }
+      }
+      .feature-card::before {
+        content: ''; position: absolute; inset: 0; opacity: 0;
+        background: linear-gradient(135deg, rgba(6,182,212,0.06), transparent);
+        transition: opacity 0.3s;
+      }
+      .feature-card:hover::before { opacity: 1; }
+      .feature-card:hover { transform: translateY(-3px); border-color: rgba(6,182,212,0.25); }
+      .feature-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+      /* ── ENHANCED HIGH-FIDELITY ICONS (APPLE FEEL) ─────── */
+      .feature-icon, .step-icon-wrap, .score-icon {
+        width: 56px !important;
+        height: 56px !important;
+        border-radius: 16px !important;
+        display: flex;
         align-items: center;
         justify-content: center;
-        height: 32px;
-        padding: 0 14px;
-        border-radius: 14px;
-        border: 1px solid var(--ring);
-        background: rgba(15, 23, 42, 0.65);
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-      }
-      .btn.primary {
-        background: var(--blue);
-        border-color: rgba(59, 130, 246, 0.45);
-      }
-      .hero {
-        padding: 26px 6px 10px;
-      }
-      .hero h1 {
-        margin: 14px 0 10px;
-        font-size: clamp(28px, 4vw, 42px);
-        letter-spacing: -0.03em;
-        line-height: 1.08;
-      }
-      .hero p {
-        margin: 0;
-        max-width: 760px;
-        color: var(--muted);
-        line-height: 1.6;
-        font-size: 15px;
-      }
-      .grid {
-        display: grid;
-        gap: 12px;
-      }
-      .grid.cols-3 {
-        grid-template-columns: 1fr;
-      }
-      .grid.cols-2 {
-        grid-template-columns: 1fr;
-      }
-      @media (min-width: 900px) {
-        .grid.cols-3 {
-          grid-template-columns: repeat(3, 1fr);
-        }
-        .grid.cols-2 {
-          grid-template-columns: 1.35fr 0.65fr;
-        }
-      }
-      .card {
-        border: 1px solid var(--ring);
-        border-radius: 24px;
-        background: var(--panel);
-        backdrop-filter: blur(8px);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        position: relative;
         overflow: hidden;
       }
-      .card .hd {
-        padding: 16px 16px 0;
+      .feature-icon svg, .step-icon-wrap svg, .score-icon svg {
+        width: 28px !important;
+        height: 28px !important;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .kicker {
-        font-size: 12px;
-        color: var(--muted2);
-        letter-spacing: 0.02em;
-        font-weight: 700;
-        text-transform: uppercase;
+      .feature-card:hover .feature-icon,
+      .step-card:hover .step-icon-wrap,
+      .comparison-score-card:hover .score-icon {
+        transform: translateY(-2px) scale(1.08) !important;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35), 0 0 15px currentColor !important;
       }
-      .card h2 {
-        margin: 6px 0 0;
-        font-size: 18px;
-        letter-spacing: -0.01em;
+      .feature-card:hover .feature-icon svg,
+      .step-card:hover .step-icon-wrap svg,
+      .comparison-score-card:hover .score-icon svg {
+        transform: scale(1.1);
       }
-      .card .bd {
-        padding: 14px 16px 16px;
-        color: var(--muted);
-        line-height: 1.55;
-        font-size: 14px;
+
+      /* Color Themes with Gradients and Glass Effects */
+      .icon-cyan {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(6, 182, 212, 0.05)) !important;
+        border: 1px solid rgba(6, 182, 212, 0.35) !important;
+        color: var(--cyan) !important;
       }
-      .pill {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        border-radius: 999px;
-        padding: 8px 12px;
-        border: 1px solid var(--ring);
-        background: rgba(2, 6, 23, 0.45);
-        font-size: 12px;
-        color: var(--muted);
-        font-weight: 600;
+      .icon-amber {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.05)) !important;
+        border: 1px solid rgba(245, 158, 11, 0.35) !important;
+        color: var(--amber) !important;
       }
-      .features {
-        margin-top: 12px;
+      .icon-teal {
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.25), rgba(20, 184, 166, 0.05)) !important;
+        border: 1px solid rgba(20, 184, 166, 0.35) !important;
+        color: var(--teal) !important;
       }
-      .feature-title {
-        margin: 0 0 6px;
-        font-size: 15px;
-        color: var(--text);
-        font-weight: 700;
+      .icon-emerald {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.05)) !important;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        color: var(--emerald) !important;
       }
-      .price {
-        font-size: 26px;
-        color: var(--text);
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin: 10px 0 8px;
+      .icon-blue {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.05)) !important;
+        border: 1px solid rgba(59, 130, 246, 0.35) !important;
+        color: #3b82f6 !important;
       }
-      .note {
-        font-size: 12px;
-        color: var(--muted2);
-        line-height: 1.5;
+      .icon-pink {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(236, 72, 153, 0.05)) !important;
+        border: 1px solid rgba(236, 72, 153, 0.35) !important;
+        color: #ec4899 !important;
       }
-      .footer {
-        margin-top: 18px;
-        padding: 16px;
-        border: 1px solid var(--ring);
-        border-radius: 24px;
-        background: var(--panel2);
-        color: var(--muted2);
-        font-size: 12px;
-        line-height: 1.55;
+      .icon-violet {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(139, 92, 246, 0.05)) !important;
+        border: 1px solid rgba(139, 92, 246, 0.35) !important;
+        color: #8b5cf6 !important;
       }
-      .highlight {
-        background: var(--blue2);
-        border: 1px solid rgba(59, 130, 246, 0.25);
+      .icon-rose {
+        background: linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(244, 63, 94, 0.05)) !important;
+        border: 1px solid rgba(244, 63, 94, 0.35) !important;
+        color: #f43f5e !important;
       }
-      .list {
-        margin: 0;
-        padding-left: 18px;
+      .icon-gold {
+        background: linear-gradient(135deg, rgba(234, 179, 8, 0.35), rgba(234, 179, 8, 0.05)) !important;
+        border: 1px solid rgba(234, 179, 8, 0.45) !important;
+        color: #eab308 !important;
       }
-      .list li {
-        margin: 6px 0;
+      .icon-slate {
+        background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(148, 163, 184, 0.05)) !important;
+        border: 1px solid rgba(148, 163, 184, 0.3) !important;
+        color: #94a3b8 !important;
       }
-      .infographic {
-        margin-top: 14px;
+      .feature-tag {
+        border-radius: 999px; padding: 4px 10px; font-size: 9px; font-weight: 700;
+        letter-spacing: 0.1em; text-transform: uppercase;
+        border: 1px solid var(--border); color: var(--muted2); background: var(--bg2);
       }
-      .infographic-frame {
-        padding: 16px;
+      .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+      .feature-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+      .feature-ticks { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+      .feature-tick { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted2); }
+      .feature-tick .tick-dot { color: var(--emerald); font-size: 13px; }
+
+      /* ════════════════════════════════════════════════════
+         SHOWCASE
+         ════════════════════════════════════════════════════ */
+      #showcase { padding: 96px 0; }
+      .showcase-grid { display: grid; gap: 16px; }
+      @media (min-width: 700px) { .showcase-grid { grid-template-columns: repeat(3, 1fr); } }
+      .showcase-card {
+        border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden;
+        background: var(--card2); transition: all 0.3s ease; position: relative;
       }
-      .infographic-frame img {
-        display: block;
-        width: 100%;
-        height: auto;
-        border-radius: 18px;
-        border: 1px solid var(--ring);
-        background: #ffffff;
+      .showcase-card:hover { transform: translateY(-4px); border-color: rgba(6,182,212,0.3); }
+      .showcase-card img { width: 100%; height: 200px; object-fit: cover; }
+      .showcase-card-body { padding: 16px; }
+      .showcase-card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+      .showcase-card-sub { font-size: 12px; color: var(--muted); }
+
+      /* ════════════════════════════════════════════════════
+         CONFRONTO
+         ════════════════════════════════════════════════════ */
+      #confronto { padding: 96px 0; }
+      .comparison-scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+      .comparison-score-card {
+        border-radius: 18px; border: 1px solid var(--border);
+        background: var(--card2); padding: 16px; text-align: center;
+        transition: all 0.3s;
+      }
+      .comparison-score-card.highlight {
+        border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.06);
+        box-shadow: 0 0 30px rgba(6,182,212,0.12);
+      }
+      .score-icon {
+        width: 40px; height: 40px; border-radius: 12px; margin: 0 auto 8px;
+        display: flex; align-items: center; justify-content: center; font-size: 18px;
+      }
+      .score-icon.primary { background: linear-gradient(135deg, var(--cyan), var(--teal)); }
+      .score-icon.muted { background: rgba(255,255,255,0.07); }
+      .score-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+      .score-num { font-size: 26px; font-weight: 900; }
+      .score-num.primary { color: var(--cyan); }
+      .score-total { font-size: 12px; color: var(--muted2); }
+      .score-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; background: rgba(6,182,212,0.12); color: var(--cyan); padding: 2px 8px; font-size: 9px; font-weight: 700; margin-top: 4px; }
+
+      .comparison-table {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); overflow: hidden;
+      }
+      .comparison-thead {
+        display: none; grid-template-columns: 1.4fr 1fr 1fr 1fr;
+        gap: 8px; padding: 14px 20px; border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,0.02); font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.08em;
+      }
+      @media (min-width: 600px) { .comparison-thead { display: grid; } }
+      .comparison-thead .col-primary { color: var(--cyan); }
+      .comparison-thead .col-muted { color: var(--muted2); }
+      .comparison-row {
+        display: grid; padding: 12px 20px; border-bottom: 1px solid var(--border2);
+        transition: background 0.15s; gap: 8px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 600px) { .comparison-row { grid-template-columns: 1.4fr 1fr 1fr 1fr; align-items: center; } }
+      .comparison-row:last-child { border-bottom: none; }
+      .comparison-row:hover { background: rgba(6,182,212,0.025); }
+      .comparison-row .feature-name { font-size: 13px; font-weight: 500; }
+      .comparison-row .cell { display: flex; align-items: center; gap: 6px; }
+      @media (min-width: 600px) { .comparison-row .cell { justify-content: center; } }
+      .cell-label { font-size: 11px; font-weight: 600; color: var(--muted2); }
+      @media (min-width: 600px) { .cell-label { display: none; } }
+      .cell-yes {
+        width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700;
+      }
+      .cell-yes.primary { background: linear-gradient(135deg, var(--cyan), var(--teal)); color: #020617; }
+      .cell-yes.muted { background: var(--emerald-dim); color: var(--emerald); }
+      .cell-no { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; background: rgba(255,255,255,0.05); color: var(--muted2); }
+      .cell-partial {
+        border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700;
+        background: var(--amber-dim); color: var(--amber);
+      }
+      .cell-na {
+        border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700;
+        background: rgba(255,255,255,0.05); color: var(--muted2);
+      }
+
+      /* ════════════════════════════════════════════════════
+         ROI CALCULATOR
+         ════════════════════════════════════════════════════ */
+      #roi { padding: 96px 0; }
+      .roi-grid { display: grid; gap: 16px; }
+      @media (min-width: 900px) { .roi-grid { grid-template-columns: 0.9fr 1.1fr; } }
+      .roi-controls {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); padding: 28px;
+      }
+      .roi-controls-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; display: flex; align-items: center; gap: 6px; }
+      .slider-group { margin-bottom: 24px; }
+      .slider-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+      .slider-label { font-size: 13px; font-weight: 600; }
+      .slider-val { font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--cyan); }
+      .slider-val span { font-family: var(--font); font-size: 11px; font-weight: 500; color: var(--muted2); margin-left: 2px; }
+      input[type="range"] {
+        width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+        -webkit-appearance: none; appearance: none; border: none;
+        background: rgba(255,255,255,0.08);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--cyan); border: 3px solid var(--bg);
+        box-shadow: 0 2px 8px rgba(6,182,212,0.4); cursor: pointer;
+        transition: transform 0.15s;
+      }
+      input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--cyan); border: 3px solid var(--bg);
+        cursor: pointer;
+      }
+      .slider-range-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted2); margin-top: 4px; }
+      .roi-note {
+        margin-top: 20px; padding: 12px; border-radius: 12px; background: rgba(6,182,212,0.06);
+        font-size: 11px; color: var(--muted); line-height: 1.5; display: flex; gap: 8px;
+      }
+      .roi-note-icon { flex-shrink: 0; color: var(--cyan); margin-top: 1px; }
+
+      .roi-results {
+        border-radius: var(--radius); border: 1px solid rgba(6,182,212,0.3);
+        background: linear-gradient(135deg, rgba(6,182,212,0.08), var(--card2));
+        padding: 28px; position: relative; overflow: hidden;
+      }
+      .roi-results-glow {
+        position: absolute; top: -32px; right: -32px; width: 180px; height: 180px;
+        border-radius: 50%; background: rgba(16,185,129,0.15); filter: blur(60px); pointer-events: none;
+      }
+      .roi-result-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+      .roi-main-value { font-size: clamp(38px, 5vw, 52px); font-weight: 900; color: var(--emerald); letter-spacing: -0.04em; }
+      .roi-main-per { font-size: 14px; font-weight: 600; color: var(--muted2); margin-left: 4px; }
+      .roi-annual { font-size: 13px; color: var(--muted2); margin-top: 4px; }
+      .roi-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+      .roi-breakdown-card {
+        border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); padding: 14px;
+      }
+      .roi-breakdown-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted2); margin-bottom: 4px; }
+      .roi-breakdown-val { font-size: 18px; font-weight: 700; }
+      .roi-breakdown-sub { font-size: 10px; color: var(--emerald); margin-top: 2px; }
+      .roi-overbooking {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-top: 10px; padding: 14px; border-radius: 14px;
+        border: 1px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.05);
+      }
+      .roi-overbooking-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); margin-bottom: 2px; }
+      .roi-overbooking-sessions { font-size: 13px; font-weight: 500; }
+      .roi-overbooking-value { font-size: 18px; font-weight: 700; color: var(--amber); text-align: right; }
+      .roi-overbooking-per { font-size: 10px; color: var(--muted2); }
+      .roi-cta { margin-top: 20px; width: 100%; justify-content: center; }
+      .roi-disclaimer { font-size: 10px; color: var(--muted2); text-align: center; margin-top: 10px; }
+
+      /* ════════════════════════════════════════════════════
+         PRICING
+         ════════════════════════════════════════════════════ */
+      #prezzi { padding: 96px 0; background: rgba(6,182,212,0.02); }
+      .pricing-toggle { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 48px; }
+      .pricing-toggle span { font-size: 13px; font-weight: 600; color: var(--muted); }
+      .pricing-toggle span.active { color: var(--text); }
+      .toggle-btn {
+        width: 48px; height: 28px; border-radius: 14px; position: relative;
+        background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+        cursor: pointer; transition: background 0.3s;
+      }
+      .toggle-btn.on { background: linear-gradient(135deg, var(--cyan), var(--teal)); border-color: transparent; }
+      .toggle-thumb {
+        position: absolute; top: 3px; left: 3px;
+        width: 20px; height: 20px; border-radius: 50%;
+        background: #fff; transition: transform 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      }
+      .toggle-btn.on .toggle-thumb { transform: translateX(20px); }
+      .annual-badge {
+        background: var(--emerald-dim); color: var(--emerald);
+        border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+      }
+      .pricing-grid { display: grid; gap: 16px; }
+      @media (min-width: 800px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); align-items: start; } }
+      .pricing-card {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); padding: 28px; position: relative; overflow: hidden;
+        transition: all 0.3s;
+      }
+      .pricing-card:hover { transform: translateY(-4px); }
+      .pricing-card.featured {
+        border-color: rgba(6,182,212,0.4);
+        background: linear-gradient(135deg, rgba(6,182,212,0.08), var(--card2));
+        box-shadow: 0 0 40px rgba(6,182,212,0.12);
+      }
+      @media (min-width: 800px) { .pricing-card.featured { margin-top: -16px; margin-bottom: -16px; } }
+      .pricing-glow { position: absolute; top: -32px; right: -32px; width: 160px; height: 160px; border-radius: 50%; background: rgba(6,182,212,0.12); filter: blur(50px); pointer-events: none; }
+      .pricing-badge {
+        position: absolute; top: 20px; right: 20px;
+        background: linear-gradient(135deg, var(--cyan), var(--teal)); color: #020617;
+        border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 700;
+        display: flex; align-items: center; gap: 4px;
+      }
+      .plan-name { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+      .plan-tagline { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 20px; }
+      .plan-price { font-size: 40px; font-weight: 900; letter-spacing: -0.04em; }
+      .plan-price-period { font-size: 14px; font-weight: 500; color: var(--muted2); margin-left: 4px; }
+      .plan-annual-note { font-size: 11px; color: var(--emerald); margin-top: 4px; min-height: 16px; }
+      .plan-features { list-style: none; margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+      .plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+      .plan-check {
+        width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+        display: flex; align-items: center; justify-content: center; font-size: 10px;
+      }
+      .plan-check.primary { background: linear-gradient(135deg, var(--cyan), var(--teal)); color: #020617; }
+      .plan-check.muted { background: var(--cyan-dim); color: var(--cyan); }
+      .plan-cta { width: 100%; justify-content: center; margin-top: 4px; }
+      .pricing-trust {
+        margin-top: 36px; display: flex; flex-wrap: wrap; gap: 20px;
+        align-items: center; justify-content: center; font-size: 12px; color: var(--muted);
+      }
+      .pricing-trust .stars { display: flex; gap: 2px; }
+      .star { color: var(--amber); }
+
+      /* ════════════════════════════════════════════════════
+         TESTIMONIANZE
+         ════════════════════════════════════════════════════ */
+      #testimonianze { padding: 96px 0; }
+      .testimonials-grid { display: grid; gap: 16px; }
+      @media (min-width: 700px) { .testimonials-grid { grid-template-columns: repeat(2, 1fr); } }
+      .testimonial-card {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); padding: 28px; position: relative; overflow: hidden;
+        transition: all 0.3s;
+      }
+      .testimonial-card.active { border-color: rgba(6,182,212,0.35); }
+      .testimonial-card:hover { border-color: rgba(6,182,212,0.2); }
+      .quote-icon { position: absolute; top: 16px; right: 16px; font-size: 40px; color: rgba(6,182,212,0.08); line-height: 1; }
+      .testimonial-stars { display: flex; gap: 3px; margin-bottom: 14px; }
+      .testimonial-text { font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+      .testimonial-author { display: flex; align-items: center; gap: 12px; }
+      .author-avatar {
+        width: 42px; height: 42px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+      }
+      .author-name { font-size: 13px; font-weight: 700; }
+      .author-role { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+      .testimonials-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 28px; }
+      .ctrl-btn {
+        width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border);
+        background: var(--card2); cursor: pointer; color: var(--text);
+        display: flex; align-items: center; justify-content: center; font-size: 16px;
+        transition: all 0.2s;
+      }
+      .ctrl-btn:hover { border-color: var(--cyan); }
+      .ctrl-dots { display: flex; gap: 6px; align-items: center; }
+      .ctrl-dot {
+        height: 6px; border-radius: 3px; cursor: pointer; transition: all 0.3s;
+        background: rgba(255,255,255,0.15); width: 6px;
+      }
+      .ctrl-dot.active { background: var(--cyan); width: 22px; }
+
+      /* ════════════════════════════════════════════════════
+         FAQ
+         ════════════════════════════════════════════════════ */
+      #faq { padding: 96px 0; background: rgba(6,182,212,0.02); }
+      .faq-list {
+        border-radius: var(--radius); border: 1px solid var(--border);
+        background: var(--card2); overflow: hidden;
+      }
+      .faq-item { border-bottom: 1px solid var(--border2); }
+      .faq-item:last-child { border-bottom: none; }
+      .faq-q {
+        width: 100%; background: none; border: none; color: var(--text);
+        padding: 20px 24px; text-align: left; cursor: pointer; display: flex;
+        align-items: center; justify-content: space-between; gap: 16px;
+        font-size: 14px; font-weight: 600; font-family: var(--font);
+        transition: background 0.15s;
+      }
+      .faq-q:hover { background: rgba(6,182,212,0.03); }
+      .faq-q-inner { display: flex; align-items: center; gap: 10px; }
+      .faq-icon { color: var(--cyan); font-size: 16px; flex-shrink: 0; }
+      .faq-arrow { font-size: 16px; color: var(--muted2); transition: transform 0.3s ease; flex-shrink: 0; }
+      .faq-item.open .faq-arrow { transform: rotate(180deg); }
+      .faq-a {
+        max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease;
+        font-size: 13px; color: var(--muted); line-height: 1.7;
+        padding: 0 24px 0 54px;
+      }
+      .faq-item.open .faq-a { max-height: 300px; padding-bottom: 20px; }
+
+      /* ════════════════════════════════════════════════════
+         CTA FINALE
+         ════════════════════════════════════════════════════ */
+      #cta-finale { padding: 96px 0; }
+      .cta-box {
+        border-radius: 32px; border: 1px solid rgba(6,182,212,0.25);
+        background: linear-gradient(135deg, rgba(6,182,212,0.1), var(--card));
+        padding: 56px 40px; position: relative; overflow: hidden;
+      }
+      @media (max-width: 600px) { .cta-box { padding: 36px 20px; } }
+      .cta-blob {
+        position: absolute; border-radius: 50%; pointer-events: none; filter: blur(60px);
+      }
+      .cta-dots-overlay {
+        position: absolute; inset: 0;
+        background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 28px 28px; pointer-events: none;
+      }
+      .cta-grid { display: grid; gap: 40px; position: relative; z-index: 1; }
+      @media (min-width: 900px) { .cta-grid { grid-template-columns: 1.2fr 1fr; align-items: center; } }
+      .cta-kicker {
+        display: inline-flex; align-items: center; gap: 6px;
+        border-radius: 999px; border: 1px solid rgba(6,182,212,0.25);
+        background: rgba(6,182,212,0.08); color: var(--cyan);
+        padding: 5px 12px; font-size: 10px; font-weight: 700;
+        letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px;
+      }
+      #cta-finale h2 {
+        font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1;
+        margin-bottom: 16px;
+      }
+      #cta-finale > .cta-box > .cta-grid > div > p {
+        font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 20px;
+      }
+      .cta-trust { display: flex; flex-wrap: wrap; gap: 14px; }
+      .cta-trust-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: var(--muted); }
+      .cta-form-card {
+        border-radius: 20px; border: 1px solid var(--border);
+        background: rgba(255,255,255,0.04); backdrop-filter: blur(12px);
+        padding: 24px;
+      }
+      .form-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); display: block; margin-bottom: 10px; }
+      .form-input-wrap { position: relative; margin-bottom: 10px; }
+      .form-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted2); font-size: 16px; }
+      .form-input {
+        width: 100%; height: 48px; padding: 0 14px 0 42px;
+        border-radius: 13px; border: 1px solid var(--border);
+        background: rgba(255,255,255,0.04); color: var(--text);
+        font-family: var(--font); font-size: 14px; outline: none;
+        transition: border-color 0.2s;
+      }
+      .form-input:focus { border-color: var(--cyan); }
+      .form-input::placeholder { color: var(--muted2); }
+      .form-submit {
+        width: 100%; height: 48px; border-radius: 13px;
+        background: linear-gradient(135deg, var(--cyan), var(--teal));
+        border: none; color: #020617; font-weight: 700; font-size: 14px;
+        cursor: pointer; transition: all 0.2s; font-family: var(--font);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+      }
+      .form-submit:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(6,182,212,0.35); }
+      .form-submit:disabled { opacity: 0.6; transform: none; cursor: default; }
+      .form-note { font-size: 11px; color: var(--muted2); text-align: center; margin-top: 10px; }
+      .form-note a { color: var(--cyan); }
+      #form-success {
+        display: none; text-align: center; padding: 16px;
+        border-radius: 13px; background: var(--emerald-dim); color: var(--emerald);
+        font-size: 14px; font-weight: 600; margin-top: 8px;
+      }
+      #form-error {
+        display: none; text-align: center; padding: 8px;
+        border-radius: 10px; background: rgba(239,68,68,0.1); color: #f87171;
+        font-size: 12px; margin-top: 6px;
+      }
+
+      /* ════════════════════════════════════════════════════
+         FOOTER
+         ════════════════════════════════════════════════════ */
+      #site-footer {
+        border-top: 1px solid var(--border); padding: 48px 0 28px;
+        background: rgba(10,22,40,0.5);
+      }
+      .footer-grid { display: grid; gap: 40px; margin-bottom: 40px; }
+      @media (min-width: 700px) { .footer-grid { grid-template-columns: 1.5fr 1fr 1fr; } }
+      .footer-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .footer-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+      .footer-email { font-size: 13px; color: var(--cyan); }
+      .footer-col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted2); margin-bottom: 14px; }
+      .footer-links { display: flex; flex-direction: column; gap: 8px; }
+      .footer-links a { font-size: 13px; color: var(--muted); transition: color 0.15s; }
+      .footer-links a:hover { color: var(--text); }
+      .footer-bottom {
+        border-top: 1px solid var(--border2); padding-top: 20px;
+        display: flex; flex-wrap: wrap; gap: 12px;
+        align-items: center; justify-content: space-between;
+        font-size: 11px; color: var(--muted2);
+      }
+      .footer-note {
+        margin-top: 8px; padding: 12px 16px; border-radius: 12px;
+        background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15);
+        font-size: 11px; color: var(--muted2); line-height: 1.5;
+      }
+
+      /* ════════════════════════════════════════════════════
+         INFOGRAFICA
+         ════════════════════════════════════════════════════ */
+      #infografica { padding: 40px 0 96px; }
+      .infografica-card { border-radius: var(--radius); border: 1px solid var(--border); background: var(--card2); }
+      .infografica-header { padding: 20px 24px 0; }
+      .infografica-body { padding: 14px 24px 20px; font-size: 13px; color: var(--muted); }
+      .infografica-frame { padding: 16px 24px 24px; }
+      .infografica-frame img { width: 100%; border-radius: 16px; border: 1px solid var(--border); background: #fff; }
+
+      /* ════════════════════════════════════════════════════
+         BACK TO TOP
+         ════════════════════════════════════════════════════ */
+      #back-top {
+        position: fixed; bottom: 28px; right: 24px; z-index: 50;
+        width: 44px; height: 44px; border-radius: 14px;
+        background: var(--card); border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; cursor: pointer; opacity: 0; transform: translateY(16px);
+        transition: all 0.3s ease; color: var(--text);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      }
+      #back-top.visible { opacity: 1; transform: translateY(0); }
+      #back-top:hover { border-color: var(--cyan); transform: translateY(-2px); }
+
+      /* ── SECTION SPACING ───────────────────────────────── */
+      section { padding-top: 80px; padding-bottom: 80px; }
+
+      /* ── RESPONSIVE HELPERS ────────────────────────────── */
+      @media (max-width: 640px) {
+        .comparison-scores { grid-template-columns: 1fr; gap: 8px; }
+        .roi-breakdown { grid-template-columns: 1fr; }
+        .hero-ctas { flex-direction: column; }
+        .hero-ctas .btn { width: 100%; justify-content: center; }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header class="topbar">
-        <div class="brand">
-          <img src="./logo.png" alt="DogWash24" />
-          <div>
-            <small>Toelettatura · Self-Service · H24</small>
-            <strong>DogWash24</strong>
+    <!-- Scroll progress bar -->
+    <div id="scroll-progress"></div>
+
+    <!-- ══ HEADER ════════════════════════════════════════════ -->
+    <header id="site-header">
+      <div class="container">
+        <div id="header-inner">
+          <a href="#" class="header-brand">
+            <img src="./logo.png" alt="DogWash24 Logo" style="height: 90px; width: auto; max-width: 100%;" />
+          </a>
+          <nav class="header-nav">
+            <a href="#come-funziona">Come funziona</a>
+            <a href="#funzionalita">Funzionalità</a>
+            <a href="#confronto">Confronto</a>
+            <a href="#roi">ROI</a>
+            <a href="#prezzi">Prezzi</a>
+            <a href="#faq">FAQ</a>
+          </nav>
+          <div class="header-actions">
+            <a href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24" class="btn">Richiedi demo</a>
+            <a href="https://toilettatura.vercel.app" class="btn btn-primary">Apri la webapp →</a>
+            <button id="menu-toggle" aria-label="Apri menu" onclick="toggleMenu()">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
           </div>
         </div>
-        <div class="cta-row">
-          <a class="btn" href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24">Richiedi una demo</a>
-          <a class="btn primary" href="https://app.dogwash24.it">Apri la webapp</a>
+        <div id="mobile-menu">
+          <a href="#come-funziona" onclick="closeMenu()">Come funziona</a>
+          <a href="#funzionalita" onclick="closeMenu()">Funzionalità</a>
+          <a href="#confronto" onclick="closeMenu()">Confronto</a>
+          <a href="#roi" onclick="closeMenu()">Calcolatore ROI</a>
+          <a href="#prezzi" onclick="closeMenu()">Prezzi</a>
+          <a href="#faq" onclick="closeMenu()">FAQ</a>
+          <div class="mobile-ctas">
+            <a href="mailto:info@dogwash24.it" class="btn">Richiedi demo</a>
+            <a href="https://toilettatura.vercel.app" class="btn btn-primary">Apri la webapp</a>
+          </div>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <section class="hero">
-        <div class="pill">Piattaforma completa per gestire una toelettatura/lavaggio cani H24</div>
-        <h1>Prenotazioni, crediti e operatività in struttura con QR e sessioni</h1>
-        <p>
-          DogWash24 è una piattaforma pensata per impianti self-service H24: il cliente prenota, paga con crediti, arriva in struttura
-          e si identifica con QR. Il gestore controlla postazioni e sessioni live, riduce disguidi e automatizza il flusso.
-        </p>
-      </section>
-
-      <section class="grid cols-2">
-        <article class="card">
-          <div class="hd">
-            <div class="kicker">Perché</div>
-            <h2>Riduci caos operativo, aumenta controllo</h2>
+    <!-- ══ HERO ══════════════════════════════════════════════ -->
+    <section id="hero">
+      <div style="position:absolute;top:0;left:20%;width:820px;height:480px;background:rgba(6,182,212,0.15);border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;"></div>
+      <div style="position:absolute;top:40%;right:0;width:360px;height:360px;background:rgba(245,158,11,0.08);border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;"></div>
+      <div class="container">
+        <div class="hero-grid">
+          <!-- Left -->
+          <div class="fade-up">
+            <div class="hero-badge">
+              <span class="dot"></span>
+              Piattaforma completa per toelettatura self-service H24
+            </div>
+            <h1>
+              Prenotazioni, crediti e
+              <span class="text-gradient"> operatività H24</span>
+              con QR e sessioni live.
+            </h1>
+            <p>DogWash24 è pensata per impianti self-service H24: il cliente prenota, paga con crediti, arriva in struttura e si identifica con QR. Il gestore controlla postazioni e sessioni live, riduce disguidi e automatizza il flusso.</p>
+            <div class="hero-ctas">
+              <a href="https://toilettatura.vercel.app" class="btn btn-primary btn-lg">
+                Apri la webapp
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+              <a href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24" class="btn btn-lg">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                Richiedi una demo
+              </a>
+            </div>
+            <div class="hero-trust">
+              <span class="hero-trust-item"><span class="check">✓</span> Anti-overbooking</span>
+              <span class="hero-trust-item"><span class="check">✓</span> Wallet a crediti</span>
+              <span class="hero-trust-item"><span class="check">✓</span> Check-in QR</span>
+              <span class="hero-trust-item"><span class="check">✓</span> Dashboard admin</span>
+            </div>
           </div>
-          <div class="bd">
-            <ul class="list">
-              <li>Disponibilità reale e anti-overbooking.</li>
-              <li>Wallet a crediti con movimenti tracciati.</li>
-              <li>Check-in in struttura e sessioni con timer.</li>
-              <li>Dashboard admin per prenotazioni, clienti, pagamenti e postazioni.</li>
-            </ul>
+          <!-- Right: Live Station Card -->
+          <div class="hero-card-wrapper fade-up" style="transition-delay:0.15s;">
+            <div class="live-card" id="live-card">
+              <div class="live-card-glow"></div>
+              <div class="bubbles" id="bubbles"></div>
+              <!-- Header -->
+              <div class="live-header">
+                <div class="live-indicator">
+                  <div class="live-dot"></div>
+                  <span class="live-label">Live · Postazione 02</span>
+                </div>
+                <span class="h24-badge">H24</span>
+              </div>
+              <!-- Dog row -->
+              <div class="live-dog-row">
+                <div class="dog-avatar">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; color: #fff;">
+                    <circle cx="12" cy="5" r="2" />
+                    <circle cx="8" cy="7" r="2" />
+                    <circle cx="16" cy="7" r="2" />
+                    <circle cx="5" cy="11" r="1.5" />
+                    <circle cx="19" cy="11" r="1.5" />
+                    <path d="M12 10c-3 0-5 2.2-5 5c0 3 2 4 5 4s5-1 5-4c0-2.8-2-5-5-5z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="dog-name">Luna · Labrador <span class="check-icon">✓</span></div>
+                  <div class="dog-service">Lavaggio + Asciugatura</div>
+                </div>
+              </div>
+              <!-- Stats -->
+              <div class="live-stats">
+                <div class="live-stat-card">
+                  <div class="live-stat-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>Sessione
+                  </div>
+                  <div class="live-stat-value" id="live-timer">04:12</div>
+                  <div class="live-progress"><div class="live-progress-bar"></div></div>
+                </div>
+                <div class="live-stat-card">
+                  <div class="live-stat-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;">
+                      <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+                    </svg>Wallet
+                  </div>
+                  <div class="live-stat-value">246</div>
+                  <div class="wallet-sub">−12 crediti</div>
+                </div>
+              </div>
+              <!-- QR row -->
+              <div class="live-qr-row">
+                <div class="qr-grid" id="qr-grid"></div>
+                <div class="qr-info">
+                  <div class="qr-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="qr-icon" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px; color: var(--cyan);">
+                      <rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M12 12v.01"/><path d="M12 17v.01"/>
+                    </svg>Check-in validato
+                  </div>
+                  <div class="qr-sub">Token firmato · finestra 14:30–15:10</div>
+                  <div class="qr-active">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px; display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px; color: var(--emerald);">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>Postazione attiva
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </article>
-
-        <aside class="card highlight">
-          <div class="hd">
-            <div class="kicker">H24 ready</div>
-            <h2>QR + Kiosk postazione</h2>
-          </div>
-          <div class="bd">
-            <p>
-              Il QR contiene un token firmato. La postazione valida e recupera la finestra oraria e il tempo residuo per sapere quando
-              avviarsi e quando terminare.
-            </p>
-            <p class="note">
-              La parte hardware (relè/contattori/cablaggi) è un passo successivo: QR → validazione → sessione → start/stop.
-            </p>
-          </div>
-        </aside>
-      </section>
-
-      <section class="features">
-        <div class="grid cols-3">
-          <article class="card">
-            <div class="hd">
-              <div class="kicker">Cliente</div>
-              <h2>Prenotazione guidata</h2>
-            </div>
-            <div class="bd">
-              Prenotazione mobile-first, durata suggerita in base al cane e ai servizi, scelta giorno/orario e riepilogo chiaro.
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="hd">
-              <div class="kicker">Economico</div>
-              <h2>Crediti e report</h2>
-            </div>
-            <div class="bd">
-              Wallet crediti con movimenti e dashboard admin con filtri ed export: controllo e tracciabilità.
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="hd">
-              <div class="kicker">Admin</div>
-              <h2>Postazioni e sessioni</h2>
-            </div>
-            <div class="bd">
-              Gestione postazioni, mappa struttura e sessioni live con timer per operatività H24.
-            </div>
-          </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="features">
-        <div class="grid cols-3">
-          <article class="card">
-            <div class="hd">
-              <div class="kicker">Utilizzo</div>
-              <h2>Licenza d’uso</h2>
-            </div>
-            <div class="bd">
-              <div class="price">da 150 €/mese</div>
-              Uso piattaforma + aggiornamenti finché attivo il canone.
-              <div class="note">Setup iniziale una tantum e assistenza base in base al piano.</div>
-            </div>
-          </article>
-
-          <article class="card highlight">
-            <div class="hd">
-              <div class="kicker">Consigliato</div>
-              <h2>Noleggio + update</h2>
-            </div>
-            <div class="bd">
-              <div class="price">da 300 €/mese</div>
-              Gestione aggiornamenti, supporto e governance release.
-              <div class="note">Ideale se vuoi “zero pensieri” e un servizio continuativo.</div>
-            </div>
-          </article>
-
-          <article class="card">
-            <div class="hd">
-              <div class="kicker">Acquisto</div>
-              <h2>Piattaforma completa</h2>
-            </div>
-            <div class="bd">
-              <div class="price">35k–120k €</div>
-              Acquisto IP/sorgenti + handover tecnico (variabile per esclusiva).
-              <div class="note">Opzione adatta a chi vuole possedere e sviluppare internamente.</div>
-            </div>
-          </article>
+    <!-- ══ STATS BAR ═════════════════════════════════════════ -->
+    <div id="stats">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item fade-up">
+            <div class="stat-value text-gradient" data-target="24" data-suffix="/7">0</div>
+            <div class="stat-label">Disponibilità operativa</div>
+            <div class="stat-sub">Zero ore di chiusura forzata</div>
+          </div>
+          <div class="stat-item fade-up" style="transition-delay:0.08s">
+            <div class="stat-value text-gradient" data-target="92" data-prefix="−" data-suffix="%">0</div>
+            <div class="stat-label">Riduzione overbooking</div>
+            <div class="stat-sub">Anti-collision automatica</div>
+          </div>
+          <div class="stat-item fade-up" style="transition-delay:0.16s">
+            <div class="stat-value text-gradient" data-target="8" data-prefix="&lt;" data-suffix="s">&lt;0s</div>
+            <div class="stat-label">Check-in in struttura</div>
+            <div class="stat-sub">QR scan → sessione avviata</div>
+          </div>
+          <div class="stat-item fade-up" style="transition-delay:0.24s">
+            <div class="stat-value text-gradient" data-target="4.9" data-suffix="/5" data-decimals="1">0</div>
+            <div class="stat-label">Rating strutture</div>
+            <div class="stat-sub">Da 1.200+ sessioni/mese</div>
+          </div>
         </div>
-      </section>
-
-      <section class="infographic">
-        <article class="card">
-          <div class="hd">
-            <div class="kicker">Infografica</div>
-            <h2>Panoramica visuale della piattaforma</h2>
-          </div>
-          <div class="bd">
-            Un supporto molto utile per fiere, appuntamenti commerciali e presentazioni rapide: in una sola schermata spiega operatività,
-            modello H24 e opzioni economiche.
-          </div>
-          <div class="infographic-frame">
-            <img src="./infografica-dogwash24.png" alt="Infografica DogWash24 con funzionalità H24, wallet, anti-overbooking e modelli di investimento" />
-          </div>
-        </article>
-      </section>
-
-      <section class="footer">
-        <div><strong>Contatti:</strong> <a href="mailto:info@dogwash24.it">info@dogwash24.it</a></div>
-        <div class="note">
-          Nota: questa pagina è pensata per hosting statico (es. Aruba Hosting Basic). La webapp completa va pubblicata su hosting con
-          Node.js o su un provider dedicato e collegata via sottodominio (es. app.dogwash24.it).
-        </div>
-      </section>
+      </div>
     </div>
+
+    <!-- ══ COME FUNZIONA ══════════════════════════════════════ -->
+    <section id="come-funziona">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">Come funziona</div>
+          <h2>Dal book online alla <span class="text-gradient">sessione live</span> in 4 step</h2>
+          <p>Un flusso guidato che riduce il caos operativo: il cliente è autonomo, il gestore ha il controllo.</p>
+        </div>
+        <div class="steps-grid">
+          <div class="step-line"></div>
+          <div class="step-card fade-up">
+            <div class="step-card-glow" style="background:rgba(6,182,212,0.3);"></div>
+            <div class="step-icon-wrap icon-cyan">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="cyan-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#0891b2" />
+                  </linearGradient>
+                  <linearGradient id="white-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                  </linearGradient>
+                </defs>
+                <rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="url(#white-grad-step)" stroke-width="2" />
+                <line x1="16" y1="2" x2="16" y2="6" stroke="url(#cyan-grad-step)" stroke-width="2" stroke-linecap="round" />
+                <line x1="8" y1="2" x2="8" y2="6" stroke="url(#cyan-grad-step)" stroke-width="2" stroke-linecap="round" />
+                <line x1="3" y1="9" x2="21" y2="9" stroke="url(#white-grad-step)" stroke-width="1.5" stroke-opacity="0.5" />
+                <rect x="6" y="12" width="2" height="2" rx="0.5" fill="url(#white-grad-step)" fill-opacity="0.5" />
+                <rect x="11" y="12" width="2" height="2" rx="0.5" fill="url(#cyan-grad-step)" />
+                <rect x="6" y="16" width="2" height="2" rx="0.5" fill="url(#white-grad-step)" fill-opacity="0.5" />
+                <circle cx="17" cy="17" r="4.5" fill="#020617" stroke="url(#cyan-grad-step)" stroke-width="1.5" />
+                <path d="M17 15v2h2" stroke="url(#cyan-grad-step)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div class="step-number">01</div>
+            <div class="step-title">Prenotazione online</div>
+            <div class="step-desc">Il cliente sceglie giorno, postazione e servizi dal suo smartphone. Durata suggerita in base al cane e ai servizi selezionati.</div>
+          </div>
+          <div class="step-card fade-up" style="transition-delay:0.1s">
+            <div class="step-card-glow" style="background:rgba(20,184,166,0.3);"></div>
+            <div class="step-icon-wrap icon-amber">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="amber-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#d97706" />
+                  </linearGradient>
+                  <linearGradient id="gold-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#fbbf24" />
+                    <stop offset="100%" stop-color="#f59e0b" />
+                  </linearGradient>
+                  <linearGradient id="card-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                    <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
+                  </linearGradient>
+                </defs>
+                <rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="url(#card-grad-step)" stroke-width="2" />
+                <line x1="2" y1="9" x2="22" y2="9" stroke="url(#card-grad-step)" stroke-width="1.5" stroke-opacity="0.4" />
+                <rect x="5" y="12" width="3.5" height="2.5" rx="0.5" fill="url(#amber-grad-step)" />
+                <circle cx="16" cy="14" r="5" fill="#020617" stroke="url(#gold-grad-step)" stroke-width="1.5" />
+                <circle cx="16" cy="14" r="3" fill="url(#gold-grad-step)" />
+                <path d="M16 12.5c-.3 0-.5.2-.5.5s.2.5.5.5.5-.2.5-.5-.2-.5-.5-.5zm-1.2.7c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm2.4 0c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm-1.2 1.4c-.6 0-1 .4-1 .9 0 .4.3.7.7.7h.6c.4 0 .7-.3.7-.7 0-.5-.4-.9-1-.9z" fill="#020617" />
+              </svg>
+            </div>
+            <div class="step-number">02</div>
+            <div class="step-title">Pagamento con crediti</div>
+            <div class="step-desc">Il wallet a crediti scalerà automaticamente il costo. Il gestore vede tutti i movimenti in dashboard con export.</div>
+          </div>
+          <div class="step-card fade-up" style="transition-delay:0.2s">
+            <div class="step-card-glow" style="background:rgba(245,158,11,0.25);"></div>
+            <div class="step-icon-wrap icon-teal">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="teal-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#14b8a6" />
+                    <stop offset="100%" stop-color="#0f766e" />
+                  </linearGradient>
+                  <linearGradient id="white-qr-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                  </linearGradient>
+                </defs>
+                <path d="M5 3H3v2m16-2h2v2M3 19v2h2m16-2v2h-2" stroke="url(#white-qr-step)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <rect x="6" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#teal-grad-step)" stroke-width="1.5" />
+                <rect x="7" y="7" width="2" height="2" fill="url(#teal-grad-step)" />
+                <rect x="14" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-step)" stroke-width="1.5" />
+                <rect x="15" y="7" width="2" height="2" fill="url(#white-qr-step)" />
+                <rect x="6" y="14" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-step)" stroke-width="1.5" />
+                <rect x="7" y="14" width="2" height="2" fill="url(#white-qr-step)" />
+                <rect x="14" y="14" width="1.5" height="1.5" fill="url(#teal-grad-step)" />
+                <rect x="16" y="14" width="1.5" height="1.5" fill="url(#white-qr-step)" fill-opacity="0.6" />
+                <rect x="14" y="16" width="1.5" height="1.5" fill="url(#white-qr-step)" fill-opacity="0.6" />
+                <rect x="16" y="16" width="2" height="2" fill="url(#teal-grad-step)" />
+                <line x1="2" y1="12" x2="22" y2="12" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </div>
+            <div class="step-number">03</div>
+            <div class="step-title">Check-in con QR</div>
+            <div class="step-desc">All'arrivo in struttura il cliente scansiona il QR. Il token firmato valida la finestra oraria e avvia la sessione.</div>
+          </div>
+          <div class="step-card fade-up" style="transition-delay:0.3s">
+            <div class="step-card-glow" style="background:rgba(16,185,129,0.25);"></div>
+            <div class="step-icon-wrap icon-emerald">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="emerald-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10b981" />
+                    <stop offset="100%" stop-color="#047857" />
+                  </linearGradient>
+                  <linearGradient id="white-timer-step" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                  </linearGradient>
+                </defs>
+                <circle cx="12" cy="13" r="8" fill="none" stroke="url(#white-timer-step)" stroke-width="2" />
+                <path d="M12 5V2m-3 1h6" stroke="url(#white-timer-step)" stroke-width="2" stroke-linecap="round" />
+                <path d="M18 6l1.5-1.5" stroke="url(#white-timer-step)" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M12 13l3.5-3.5" stroke="url(#white-timer-step)" stroke-width="1.5" stroke-opacity="0.5" stroke-linecap="round" />
+                <path d="M13 9.5l-3.5 4.5h3l-.5 3.5 3.5-4.5h-3z" fill="url(#emerald-grad-step)" />
+              </svg>
+            </div>
+            <div class="step-number">04</div>
+            <div class="step-title">Sessione live + kiosk</div>
+            <div class="step-desc">Il gestore monitora postazioni e sessioni in tempo reale. Timer, stato e fine sessione automatica. Struttura operativa H24.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FUNZIONALITÀ ═══════════════════════════════════════ -->
+    <section id="funzionalita">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">Funzionalità</div>
+          <h2>Tutto ciò che serve per gestire <span class="text-gradient">una struttura H24</span></h2>
+          <p>Dalla prenotazione del cliente al report del gestore: ogni parte del flusso è coperta e tracciata.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card wide fade-up">
+            <div class="feature-top">
+              <div class="feature-icon icon-cyan">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="cyan-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#06b6d4" />
+                      <stop offset="100%" stop-color="#0891b2" />
+                    </linearGradient>
+                    <linearGradient id="white-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="url(#white-grad-f)" stroke-width="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" stroke="url(#cyan-grad-f)" stroke-width="2" stroke-linecap="round" />
+                  <line x1="8" y1="2" x2="8" y2="6" stroke="url(#cyan-grad-f)" stroke-width="2" stroke-linecap="round" />
+                  <line x1="3" y1="9" x2="21" y2="9" stroke="url(#white-grad-f)" stroke-width="1.5" stroke-opacity="0.5" />
+                  <rect x="6" y="12" width="2" height="2" rx="0.5" fill="url(#white-grad-f)" fill-opacity="0.5" />
+                  <rect x="11" y="12" width="2" height="2" rx="0.5" fill="url(#cyan-grad-f)" />
+                  <rect x="6" y="16" width="2" height="2" rx="0.5" fill="url(#white-grad-f)" fill-opacity="0.5" />
+                  <circle cx="17" cy="17" r="4.5" fill="#020617" stroke="url(#cyan-grad-f)" stroke-width="1.5" />
+                  <path d="M17 15v2h2" stroke="url(#cyan-grad-f)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <span class="feature-tag">Prenotazioni</span>
+            </div>
+            <div class="feature-title">Disponibilità real-time & anti-overbooking</div>
+            <div class="feature-desc">Calendario con slot liberi/occupati aggiornato in tempo reale. Nessuna doppia prenotazione, nessun conflitto.</div>
+            <div class="feature-ticks">
+              <span class="feature-tick"><span class="tick-dot">✓</span> Real-time</span>
+              <span class="feature-tick"><span class="tick-dot">✓</span> Tracciato</span>
+              <span class="feature-tick"><span class="tick-dot">✓</span> Mobile-first</span>
+            </div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.08s">
+            <div class="feature-top">
+              <div class="feature-icon icon-amber">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="amber-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#f59e0b" />
+                      <stop offset="100%" stop-color="#d97706" />
+                    </linearGradient>
+                    <linearGradient id="gold-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fbbf24" />
+                      <stop offset="100%" stop-color="#f59e0b" />
+                    </linearGradient>
+                    <linearGradient id="card-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="url(#card-grad-f)" stroke-width="2" />
+                  <line x1="2" y1="9" x2="22" y2="9" stroke="url(#card-grad-f)" stroke-width="1.5" stroke-opacity="0.4" />
+                  <rect x="5" y="12" width="3.5" height="2.5" rx="0.5" fill="url(#amber-grad-f)" />
+                  <circle cx="16" cy="14" r="5" fill="#020617" stroke="url(#gold-grad-f)" stroke-width="1.5" />
+                  <circle cx="16" cy="14" r="3" fill="url(#gold-grad-f)" />
+                  <path d="M16 12.5c-.3 0-.5.2-.5.5s.2.5.5.5.5-.2.5-.5-.2-.5-.5-.5zm-1.2.7c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm2.4 0c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm-1.2 1.4c-.6 0-1 .4-1 .9 0 .4.3.7.7.7h.6c.4 0 .7-.3.7-.7 0-.5-.4-.9-1-.9z" fill="#020617" />
+                </svg>
+              </div>
+              <span class="feature-tag">Wallet</span>
+            </div>
+            <div class="feature-title">Wallet a crediti prepagati</div>
+            <div class="feature-desc">Il cliente ricarica il wallet, i crediti si scalano ad ogni sessione. Movimenti tracciati e storico completo.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.16s">
+            <div class="feature-top">
+              <div class="feature-icon icon-teal">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="teal-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#14b8a6" />
+                      <stop offset="100%" stop-color="#0f766e" />
+                    </linearGradient>
+                    <linearGradient id="white-qr-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M5 3H3v2m16-2h2v2M3 19v2h2m16-2v2h-2" stroke="url(#white-qr-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <rect x="6" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#teal-grad-f)" stroke-width="1.5" />
+                  <rect x="7" y="7" width="2" height="2" fill="url(#teal-grad-f)" />
+                  <rect x="14" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-f)" stroke-width="1.5" />
+                  <rect x="15" y="7" width="2" height="2" fill="url(#white-qr-f)" />
+                  <rect x="6" y="14" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-f)" stroke-width="1.5" />
+                  <rect x="7" y="14" width="2" height="2" fill="url(#white-qr-f)" />
+                  <rect x="14" y="14" width="1.5" height="1.5" fill="url(#teal-grad-f)" />
+                  <rect x="16" y="14" width="1.5" height="1.5" fill="url(#white-qr-f)" fill-opacity="0.6" />
+                  <rect x="14" y="16" width="1.5" height="1.5" fill="url(#white-qr-f)" fill-opacity="0.6" />
+                  <rect x="16" y="16" width="2" height="2" fill="url(#teal-grad-f)" />
+                  <line x1="2" y1="12" x2="22" y2="12" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </div>
+              <span class="feature-tag">Check-in</span>
+            </div>
+            <div class="feature-title">QR Code firmato per il check-in</div>
+            <div class="feature-desc">Token firmato con finestra oraria. Scansione veloce, validazione istantanea, nessun bisogno di personale.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.24s">
+            <div class="feature-top">
+              <div class="feature-icon icon-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="blue-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#3b82f6" />
+                      <stop offset="100%" stop-color="#1d4ed8" />
+                    </linearGradient>
+                    <linearGradient id="chart-area-f" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4" />
+                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="white-dash-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="url(#white-dash-f)" stroke-width="2" />
+                  <line x1="2" y1="8" x2="22" y2="8" stroke="url(#white-dash-f)" stroke-width="1.5" stroke-opacity="0.4" />
+                  <circle cx="5" cy="6" r="0.75" fill="#ef4444" />
+                  <circle cx="7" cy="6" r="0.75" fill="#f59e0b" />
+                  <circle cx="9" cy="6" r="0.75" fill="#10b981" />
+                  <path d="M5 16l4-4 4 2 6-6v8H5z" fill="url(#chart-area-f)" />
+                  <path d="M5 16l4-4 4 2 6-6" fill="none" stroke="url(#blue-grad-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="19" cy="8" r="1.5" fill="url(#blue-grad-f)" />
+                </svg>
+              </div>
+              <span class="feature-tag">Admin</span>
+            </div>
+            <div class="feature-title">Dashboard admin completa</div>
+            <div class="feature-desc">Prenotazioni, clienti, pagamenti, postazioni e sessioni live. Filtri, export e storico completo.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.08s">
+            <div class="feature-top">
+              <div class="feature-icon icon-emerald">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="emerald-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#10b981" />
+                      <stop offset="100%" stop-color="#047857" />
+                    </linearGradient>
+                    <linearGradient id="white-timer-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="12" cy="13" r="8" fill="none" stroke="url(#white-timer-f)" stroke-width="2" />
+                  <path d="M12 5V2m-3 1h6" stroke="url(#white-timer-f)" stroke-width="2" stroke-linecap="round" />
+                  <path d="M18 6l1.5-1.5" stroke="url(#white-timer-f)" stroke-width="1.5" stroke-linecap="round" />
+                  <path d="M12 13l3.5-3.5" stroke="url(#white-timer-f)" stroke-width="1.5" stroke-opacity="0.5" stroke-linecap="round" />
+                  <path d="M13 9.5l-3.5 4.5h3l-.5 3.5 3.5-4.5h-3z" fill="url(#emerald-grad-f)" />
+                </svg>
+              </div>
+              <span class="feature-tag">Sessioni</span>
+            </div>
+            <div class="feature-title">Sessioni live con timer</div>
+            <div class="feature-desc">Monitoraggio in tempo reale di ogni postazione: start, progress, end. Automazione H24 senza presidio.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.16s">
+            <div class="feature-top">
+              <div class="feature-icon icon-pink">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="pink-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ec4899" />
+                      <stop offset="100%" stop-color="#be185d" />
+                    </linearGradient>
+                    <linearGradient id="ear-grad-f" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#f472b6" />
+                      <stop offset="100%" stop-color="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" />
+                  <path d="M6 7.5c-.5-.8-1.5-.8-1.8.2-.5 1.5.2 4.3 1.3 5 .8.5 1.5-.5 1.5-1.5V9c0-1-.5-1.2-1-1.5z" fill="url(#ear-grad-f)" />
+                  <path d="M18 7.5c.5-.8 1.5-.8 1.8.2.5 1.5-.2 4.3-1.3 5-.8.5-1.5-.5-1.5-1.5V9c0-1 .5-1.2-1-1.5z" fill="url(#ear-grad-f)" />
+                  <path d="M7 11.5c0-2.5 2-4.5 5-4.5s5 2 5 4.5c0 2.2-1 3.5-2.5 4h-5C8 15 7 13.7 7 11.5z" fill="#ffffff" fill-opacity="0.9" />
+                  <circle cx="9.5" cy="11.5" r="1" fill="#020617" />
+                  <circle cx="14.5" cy="11.5" r="1" fill="#020617" />
+                  <ellipse cx="12" cy="14" rx="2" ry="1.5" fill="#f1f5f9" stroke="url(#pink-grad-f)" stroke-width="1" />
+                  <path d="M11 13.2h2c.2 0 .3.1.2.2l-.8.8a.4.4 0 0 1-.6 0l-.8-.8c-.1-.1 0-.2.2-.2z" fill="url(#pink-grad-f)" />
+                  <path d="M9 16.5h6l.5 1.5h-7z" fill="url(#pink-grad-f)" />
+                  <circle cx="12" cy="19" r="1" fill="#fbbf24" />
+                </svg>
+              </div>
+              <span class="feature-tag">Profili</span>
+            </div>
+            <div class="feature-title">Profili cane multi-pet</div>
+            <div class="feature-desc">Ogni cliente registra i propri cani con taglia e servizi preferiti. La durata della sessione si calcola automaticamente.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.24s">
+            <div class="feature-top">
+              <div class="feature-icon icon-rose">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="rose-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#f43f5e" />
+                      <stop offset="100%" stop-color="#be123c" />
+                    </linearGradient>
+                    <linearGradient id="white-rose-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M3 20h18" stroke="url(#white-rose-f)" stroke-width="2" stroke-linecap="round" />
+                  <rect x="5" y="13" width="3" height="7" rx="1" fill="url(#white-rose-f)" fill-opacity="0.5" />
+                  <rect x="10" y="9" width="3" height="11" rx="1" fill="url(#white-rose-f)" fill-opacity="0.75" />
+                  <rect x="15" y="5" width="3" height="15" rx="1" fill="url(#rose-grad-f)" />
+                  <path d="M4 17s3-4 6-4 5-5 8-7" fill="none" stroke="url(#rose-grad-f)" stroke-width="2" stroke-linecap="round" />
+                  <path d="M15 6h3v3" fill="none" stroke="url(#rose-grad-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <span class="feature-tag">Report</span>
+            </div>
+            <div class="feature-title">Report e analytics</div>
+            <div class="feature-desc">KPI struttura, utilizzo postazioni, ricavi per periodo, clienti attivi. Export CSV per contabilità.</div>
+          </div>
+          <div class="feature-card fade-up" style="transition-delay:0.32s">
+            <div class="feature-top">
+              <div class="feature-icon icon-violet">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="violet-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#8b5cf6" />
+                      <stop offset="100%" stop-color="#5b21b6" />
+                    </linearGradient>
+                    <linearGradient id="white-help-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M3 18c3 0 5-1 7-3s3.5-3 5-3c1.2 0 2.5.8 3 1.5l1.5-1c-1-1.5-3-2.5-4.5-2.5-2 0-3.5 1-5.5 3s-3.5 2-6.5 2h-1v3z" fill="url(#white-help-f)" />
+                  <path d="M15.5 5.5c-.4 0-.7.3-.7.7s.3.7.7.7.7-.3.7-.7-.3-.7-.7-.7zm-1.8.8c-.3 0-.6.3-.6.6s.3.6.6.6.6-.3.6-.6-.3-.6-.6-.6zm3.6 0c-.3 0-.6.3-.6.6s.3.6.6.6.6-.3.6-.6-.3-.6-.6-.6zm-1.8 1.9c-.8 0-1.4.6-1.4 1.3 0 .5.4 1 1 1h.8c.6 0 1-.5 1-1 0-.7-.6-1.3-1.4-1.3z" fill="url(#violet-grad-f)" />
+                  <path d="M21 4.5l-1 1 1 1 1-1zm-9 6l-.5.5.5.5.5-.5z" fill="url(#violet-grad-f)" />
+                </svg>
+              </div>
+              <span class="feature-tag">Ibrido</span>
+            </div>
+            <div class="feature-title">Sistema Ibrido & Assistenza</div>
+            <div class="feature-desc">Offri lavaggio self-service ma permetti al cliente di richiedere assistenza in struttura (+15 crediti). Lo staff visualizza le richieste live.</div>
+          </div>
+          <div class="feature-card wide fade-up" style="transition-delay:0.08s">
+            <div class="feature-top">
+              <div class="feature-icon icon-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="shield-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#3b82f6" />
+                      <stop offset="100%" stop-color="#8b5cf6" />
+                    </linearGradient>
+                    <linearGradient id="white-lock-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="url(#shield-grad-f)" stroke-width="2" stroke-linejoin="round" />
+                  <rect x="9" y="11" width="6" height="5" rx="1" fill="url(#white-lock-f)" />
+                  <path d="M10 11V9a2 2 0 0 1 4 0v2" stroke="url(#white-lock-f)" stroke-width="1.5" stroke-linecap="round" />
+                  <circle cx="12" cy="13.5" r="0.75" fill="#020617" />
+                </svg>
+              </div>
+              <span class="feature-tag">Sicurezza</span>
+            </div>
+            <div class="feature-title">Sicurezza & affidabilità enterprise</div>
+            <div class="feature-desc">Auth con PKCE, sessioni JWT, Row Level Security su ogni dato. Infrastruttura scalabile, uptime 99.9%.</div>
+            <div class="feature-ticks">
+              <span class="feature-tick"><span class="tick-dot">✓</span> PKCE Auth</span>
+              <span class="feature-tick"><span class="tick-dot">✓</span> RLS Supabase</span>
+              <span class="feature-tick"><span class="tick-dot">✓</span> GDPR ready</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SHOWCASE ═══════════════════════════════════════════ -->
+    <section id="showcase">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">La piattaforma</div>
+          <h2>Struttura moderna, <span class="text-gradient">esperienza fluida</span></h2>
+          <p>Postazioni self-service H24 progettate per il comfort del cane e la semplicità del cliente.</p>
+        </div>
+        <div class="showcase-grid">
+          <div class="showcase-card fade-up">
+            <img src="./hero-station.png" alt="Postazione lavaggio DogWash24" loading="lazy" />
+            <div class="showcase-card-body">
+              <div class="showcase-card-title">Postazione professionale</div>
+              <div class="showcase-card-sub">Attrezzatura top, operativa H24 senza personale</div>
+            </div>
+          </div>
+          <div class="showcase-card fade-up" style="transition-delay:0.1s">
+            <img src="./facility-map.png" alt="Mappa struttura DogWash24" loading="lazy" />
+            <div class="showcase-card-body">
+              <div class="showcase-card-title">Mappa struttura</div>
+              <div class="showcase-card-sub">Vista live di tutte le postazioni e stati</div>
+            </div>
+          </div>
+          <div class="showcase-card fade-up" style="transition-delay:0.2s">
+            <img src="./happy-dog.png" alt="Cane felice dopo toelettatura DogWash24" loading="lazy" />
+            <div class="showcase-card-body">
+              <div class="showcase-card-title">Risultato garantito</div>
+              <div class="showcase-card-sub">Clienti soddisfatti, struttura che si gestisce da sola</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CONFRONTO ═════════════════════════════════════════ -->
+    <section id="confronto">
+      <div class="container container-sm">
+        <div class="section-heading">
+          <div class="kicker">Confronto</div>
+          <h2>DogWash24 vs <span class="text-gradient">le alternative</span></h2>
+          <p>Una tabella chiara per capire cosa cambia davvero passando a una piattaforma H24 dedicata.</p>
+        </div>
+        <!-- Score badges -->
+        <div class="comparison-scores fade-up">
+          <div class="comparison-score-card highlight">
+            <div class="score-icon icon-gold">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="gold-crown-comp" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#fbbf24" />
+                  </linearGradient>
+                </defs>
+                <path d="M2 18l1.5-10 4.5 4 4-6 4 6 4.5-4 1.5 10H2z" fill="url(#gold-crown-comp)" />
+                <circle cx="3.5" cy="8" r="0.8" fill="#ffffff" />
+                <circle cx="8" cy="12" r="0.8" fill="#ffffff" />
+                <circle cx="12" cy="6" r="0.8" fill="#ffffff" />
+                <circle cx="16" cy="12" r="0.8" fill="#ffffff" />
+                <circle cx="20.5" cy="8" r="0.8" fill="#ffffff" />
+                <path d="M12 11c-.3 0-.5.2-.5.5s.2.5.5.5.5-.2.5-.5-.2-.5-.5-.5zm-.9.5c-.2 0-.3.1-.3.3s.1.3.3.3.3-.1.3-.3-.1-.3-.3-.3zm1.8 0c-.2 0-.3.1-.3.3s.1.3.3.3.3-.1.3-.3-.1-.3-.3-.3zm-1 1c-.4 0-.8.3-.8.7 0 .3.2.5.5.5h.6c.3 0 .5-.2.5-.5 0-.4-.4-.7-.8-.7z" fill="#020617" />
+                <rect x="2" y="17" width="20" height="1.5" fill="#d97706" />
+              </svg>
+            </div>
+            <div class="score-name">DogWash24</div>
+            <div class="score-num primary" id="score-dw">—</div>
+            <div class="score-total">su 11 funzioni</div>
+            <div class="score-badge">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 10px; height: 10px; color: var(--cyan); display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -1px;">
+                <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/>
+              </svg>Migliore
+            </div>
+          </div>
+          <div class="comparison-score-card">
+            <div class="score-icon icon-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="slate-grad-comp1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#94a3b8" />
+                    <stop offset="100%" stop-color="#475569" />
+                  </linearGradient>
+                </defs>
+                <rect x="4" y="5" width="12" height="15" rx="1.5" fill="none" stroke="url(#slate-grad-comp1)" stroke-width="2" />
+                <rect x="8" y="3" width="4" height="2" rx="0.5" fill="url(#slate-grad-comp1)" />
+                <line x1="7" y1="9" x2="13" y2="9" stroke="url(#slate-grad-comp1)" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.6" />
+                <line x1="7" y1="12" x2="11" y2="12" stroke="url(#slate-grad-comp1)" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.6" />
+                <path d="M17 9l3 3-3 3M20 9v6" stroke="url(#slate-grad-comp1)" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M17 10h3M17 14h3" stroke="url(#slate-grad-comp1)" stroke-width="1.5" />
+              </svg>
+            </div>
+            <div class="score-name">Gestione manuale</div>
+            <div class="score-num" id="score-manual">—</div>
+            <div class="score-total">su 11 funzioni</div>
+          </div>
+          <div class="comparison-score-card">
+            <div class="score-icon icon-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="server-grad-comp2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#94a3b8" />
+                    <stop offset="100%" stop-color="#475569" />
+                  </linearGradient>
+                </defs>
+                <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="url(#server-grad-comp2)" stroke-width="2" />
+                <rect x="7" y="6" width="10" height="2.5" rx="0.5" fill="none" stroke="url(#server-grad-comp2)" stroke-width="1.5" stroke-opacity="0.6" />
+                <circle cx="15" cy="7.25" r="0.5" fill="#f59e0b" />
+                <rect x="7" y="11" width="10" height="2.5" rx="0.5" fill="none" stroke="url(#server-grad-comp2)" stroke-width="1.5" stroke-opacity="0.6" />
+                <circle cx="15" cy="12.25" r="0.5" fill="#f59e0b" />
+                <rect x="7" y="16" width="10" height="2.5" rx="0.5" fill="none" stroke="url(#server-grad-comp2)" stroke-width="1.5" stroke-opacity="0.6" />
+                <circle cx="15" cy="17.25" r="0.5" fill="#ef4444" />
+              </svg>
+            </div>
+            <div class="score-name">Altri software</div>
+            <div class="score-num" id="score-comp">—</div>
+            <div class="score-total">su 11 funzioni</div>
+          </div>
+        </div>
+        <!-- Table -->
+        <div class="comparison-table fade-up" style="transition-delay:0.1s">
+          <div class="comparison-thead">
+            <div class="col-muted">Funzionalità</div>
+            <div class="col-primary" style="text-align:center">DogWash24</div>
+            <div class="col-muted" style="text-align:center">Manuale</div>
+            <div class="col-muted" style="text-align:center">Altri software</div>
+          </div>
+          <div id="comparison-rows"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ ROI CALCULATOR ════════════════════════════════════ -->
+    <section id="roi">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">Calcolatore ROI</div>
+          <h2>Quanto vale <span class="text-gradient">DogWash24</span> per la tua struttura?</h2>
+          <p>Muovi i cursori e scopri il potenziale di ricavo aggiuntivo passando al modello self-service H24.</p>
+        </div>
+        <div class="roi-grid">
+          <!-- Controls -->
+          <div class="roi-controls fade-up">
+            <div class="roi-controls-title">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--muted); display: inline-block; vertical-align: middle; margin-right: 6px; margin-top: -2px;">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>I tuoi dati
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">Postazioni in struttura</span>
+                <span class="slider-val"><span id="val-stations">3</span></span>
+              </div>
+              <input type="range" id="slider-stations" min="1" max="10" value="3" oninput="updateROI()">
+              <div class="slider-range-labels"><span>1</span><span>10</span></div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">Sessioni giornaliere per postazione</span>
+                <span class="slider-val"><span id="val-sessions">8</span><span>/g</span></span>
+              </div>
+              <input type="range" id="slider-sessions" min="2" max="20" value="8" oninput="updateROI()">
+              <div class="slider-range-labels"><span>2/g</span><span>20/g</span></div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="slider-label">Giorni di apertura a settimana</span>
+                <span class="slider-val"><span id="val-days">7</span><span>g</span></span>
+              </div>
+              <input type="range" id="slider-days" min="1" max="7" value="7" oninput="updateROI()">
+              <div class="slider-range-labels"><span>1g</span><span>7g</span></div>
+            </div>
+            <div class="roi-note">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="roi-note-icon" style="width: 16px; height: 16px; color: var(--cyan); flex-shrink: 0; margin-top: 2px;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>
+              </svg>
+              <span>Stima basata su scontrino medio 18€, piano «Noleggio + update» 300€/mese e +34% sessioni da apertura H24 + prenotazioni online.</span>
+            </div>
+          </div>
+          <!-- Results -->
+          <div class="roi-results fade-up" style="transition-delay:0.1s">
+            <div class="roi-results-glow"></div>
+            <div class="roi-result-title">📈 Ricavo aggiuntivo stimato</div>
+            <div>
+              <span class="roi-main-value" id="roi-extra">+€0</span>
+              <span class="roi-main-per">/mese</span>
+            </div>
+            <div class="roi-annual">≈ <span id="roi-annual">€0</span> /anno</div>
+            <div class="roi-breakdown">
+              <div class="roi-breakdown-card">
+                <div class="roi-breakdown-label">💰 Netto mensile</div>
+                <div class="roi-breakdown-val" id="roi-net-dw">€0</div>
+                <div class="roi-breakdown-sub" id="roi-net-manual">vs €0 manuale</div>
+              </div>
+              <div class="roi-breakdown-card">
+                <div class="roi-breakdown-label">⏱ Sessioni/mese</div>
+                <div class="roi-breakdown-val" id="roi-sessions">0</div>
+                <div class="roi-breakdown-sub">+34% vs manuale</div>
+              </div>
+            </div>
+            <div class="roi-overbooking">
+              <div>
+                <div class="roi-overbooking-label">Overbooking recuperato</div>
+                <div class="roi-overbooking-sessions"><span id="roi-ov-sessions">0</span> sessioni/mese</div>
+              </div>
+              <div>
+                <div class="roi-overbooking-value" id="roi-ov-revenue">+€0</div>
+                <div class="roi-overbooking-per">/mese</div>
+              </div>
+            </div>
+            <a href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20ROI" class="btn btn-primary btn-lg roi-cta">
+              Voglio questi numeri
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <div class="roi-disclaimer">Stima indicativa. I risultati reali dipendono da struttura, location e domanda.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PREZZI ═════════════════════════════════════════════ -->
+    <section id="prezzi">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">Prezzi</div>
+          <h2>Scegli il modello <span class="text-gradient">più adatto a te</span></h2>
+          <p>Dalla licenza d'uso all'acquisto completo dell'IP: tre modelli per ogni fase di crescita della tua struttura.</p>
+        </div>
+        <div class="pricing-toggle">
+          <span id="toggle-label-mensile" class="active">Mensile</span>
+          <div class="toggle-btn" id="billing-toggle" onclick="toggleBilling()" role="switch" aria-checked="false"></div>
+          <span id="toggle-label-annuale">Annuale</span>
+          <span class="annual-badge">−2 mesi</span>
+          <div class="toggle-thumb" style="display:none"></div>
+        </div>
+        <div class="pricing-grid">
+          <!-- Piano 1: Licenza -->
+          <div class="pricing-card fade-up">
+            <div class="plan-name">Licenza d'uso</div>
+            <div class="plan-tagline">Per chi vuole iniziare con il canone minimo e gestire tutto da solo.</div>
+            <div>
+              <span class="plan-price" id="price-1">150€</span><span class="plan-price-period">/mese</span>
+            </div>
+            <div class="plan-annual-note" id="annual-note-1"></div>
+            <ul class="plan-features">
+              <li><span class="plan-check muted">✓</span>Piattaforma completa</li>
+              <li><span class="plan-check muted">✓</span>Aggiornamenti inclusi</li>
+              <li><span class="plan-check muted">✓</span>Setup iniziale una tantum</li>
+              <li><span class="plan-check muted">✓</span>Assistenza base</li>
+              <li><span class="plan-check muted">✓</span>Dashboard admin</li>
+              <li><span class="plan-check muted">✓</span>Wallet + QR</li>
+            </ul>
+            <a href="mailto:info@dogwash24.it?subject=Piano%20Licenza%20d'uso" class="btn btn-lg plan-cta">Inizia →</a>
+          </div>
+          <!-- Piano 2: Noleggio + Update (consigliato) -->
+          <div class="pricing-card featured fade-up" style="transition-delay:0.1s">
+            <div class="pricing-glow"></div>
+            <div class="pricing-badge">✨ Consigliato</div>
+            <div class="plan-name">Noleggio + Update</div>
+            <div class="plan-tagline">Zero pensieri: aggiornamenti, supporto e governance release gestiti da noi.</div>
+            <div>
+              <span class="plan-price" id="price-2">300€</span><span class="plan-price-period">/mese</span>
+            </div>
+            <div class="plan-annual-note" id="annual-note-2"></div>
+            <ul class="plan-features">
+              <li><span class="plan-check primary">✓</span>Tutto del piano Licenza</li>
+              <li><span class="plan-check primary">✓</span>Aggiornamenti gestiti</li>
+              <li><span class="plan-check primary">✓</span>Supporto prioritario</li>
+              <li><span class="plan-check primary">✓</span>Governance release</li>
+              <li><span class="plan-check primary">✓</span>Onboarding dedicato</li>
+              <li><span class="plan-check primary">✓</span>SLA garantito</li>
+            </ul>
+            <a href="mailto:info@dogwash24.it?subject=Piano%20Noleggio%20%2B%20Update" class="btn btn-primary btn-lg plan-cta">Scegli questo →</a>
+          </div>
+          <!-- Piano 3: Acquisto IP -->
+          <div class="pricing-card fade-up" style="transition-delay:0.2s">
+            <div class="plan-name">Piattaforma completa</div>
+            <div class="plan-tagline">Acquisto IP/sorgenti + handover tecnico. Per chi vuole possedere e sviluppare internamente.</div>
+            <div>
+              <span class="plan-price" style="font-size:28px">35k–120k€</span>
+            </div>
+            <div class="plan-annual-note" style="color:var(--muted2)">Una tantum · variabile per esclusiva</div>
+            <ul class="plan-features">
+              <li><span class="plan-check muted">✓</span>Codice sorgente completo</li>
+              <li><span class="plan-check muted">✓</span>Handover tecnico</li>
+              <li><span class="plan-check muted">✓</span>Documentazione architettura</li>
+              <li><span class="plan-check muted">✓</span>Formazione team</li>
+              <li><span class="plan-check muted">✓</span>Personalizzazione brand</li>
+              <li><span class="plan-check muted">✓</span>Diritti di proprietà</li>
+            </ul>
+            <a href="mailto:info@dogwash24.it?subject=Acquisto%20piattaforma%20completa" class="btn btn-lg plan-cta">Richiedi preventivo →</a>
+          </div>
+        </div>
+        <div class="pricing-trust fade-up">
+          <span>
+            <span class="stars">
+              <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            </span>
+            <strong style="margin-left:6px">4.9/5</strong> da 1.200+ strutture
+          </span>
+          <span>Setup iniziale una tantum</span>
+          <span>Disdetta 30 giorni</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ TESTIMONIANZE ══════════════════════════════════════ -->
+    <section id="testimonianze">
+      <div class="container">
+        <div class="section-heading">
+          <div class="kicker">Testimonianze</div>
+          <h2>Strutture che hanno scelto <span class="text-gradient">DogWash24</span></h2>
+          <p>Oltre 1.200 sessioni H24 gestite ogni mese. Ecco cosa dicono i titolari.</p>
+        </div>
+        <div class="testimonials-grid" id="testimonials-grid"></div>
+        <div class="testimonials-controls">
+          <button class="ctrl-btn" onclick="prevTestimonial()" aria-label="Precedente">←</button>
+          <div class="ctrl-dots" id="ctrl-dots"></div>
+          <button class="ctrl-btn" onclick="nextTestimonial()" aria-label="Successiva">→</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FAQ ═══════════════════════════════════════════════ -->
+    <section id="faq">
+      <div class="container container-sm">
+        <div class="section-heading">
+          <div class="kicker">FAQ</div>
+          <h2>Domande <span class="text-gradient">frequenti</span></h2>
+          <p>Tutto quello che vuoi sapere prima di scegliere DogWash24.</p>
+        </div>
+        <div class="faq-list fade-up" id="faq-list"></div>
+      </div>
+    </section>
+
+    <!-- ══ CTA FINALE ═════════════════════════════════════════ -->
+    <section id="cta-finale">
+      <div class="container">
+        <div class="cta-box">
+          <div class="cta-blob" style="top:-64px;right:-64px;width:256px;height:256px;background:rgba(6,182,212,0.15);"></div>
+          <div class="cta-blob" style="bottom:-64px;left:-64px;width:256px;height:256px;background:rgba(245,158,11,0.1);"></div>
+          <div class="cta-dots-overlay"></div>
+          <div class="cta-grid">
+            <div>
+              <div class="cta-kicker">✨ Inizia oggi</div>
+              <h2>Trasforma la tua toelettatura in un <span class="text-gradient">impianto H24</span></h2>
+              <p>Richiedi una demo gratuita: vedrai in azione prenotazioni, wallet, check-in QR e dashboard admin. Nessun impegno.</p>
+              <div class="cta-trust">
+                <span class="cta-trust-item"><span style="color:var(--emerald)">✓</span> Demo gratuita</span>
+                <span class="cta-trust-item"><span style="color:var(--emerald)">✓</span> Setup in 7 giorni</span>
+                <span class="cta-trust-item"><span style="color:var(--emerald)">✓</span> Disdetta 30 giorni</span>
+              </div>
+            </div>
+            <div class="cta-form-card">
+              <label class="form-label" for="cta-email">Richiedi la demo</label>
+              <form id="cta-form" onsubmit="submitForm(event)">
+                <div class="form-input-wrap">
+                  <span class="form-input-icon">✉</span>
+                  <input class="form-input" id="cta-email" type="email" placeholder="la-tua@email.it" autocomplete="email" />
+                </div>
+                <button class="form-submit" type="submit" id="form-btn">
+                  Richiedi una demo
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+              </form>
+              <div id="form-success">✅ Richiesta inviata! Ti contatteremo entro 24 ore.</div>
+              <div id="form-error">⚠ Inserisci un indirizzo email valido.</div>
+              <div class="form-note">Oppure scrivici a <a href="mailto:info@dogwash24.it">info@dogwash24.it</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ INFOGRAFICA ════════════════════════════════════════ -->
+    <section id="infografica" style="padding-top:0">
+      <div class="container">
+        <div class="infografica-card fade-up">
+          <div class="infografica-header">
+            <div class="kicker">Infografica</div>
+            <h2 style="font-size:20px;font-weight:700;margin-top:6px">Panoramica visuale della piattaforma</h2>
+          </div>
+          <div class="infografica-body">
+            Un supporto utile per fiere, appuntamenti commerciali e presentazioni rapide: in una sola schermata spiega operatività, modello H24 e opzioni economiche.
+          </div>
+          <div class="infografica-frame">
+            <img src="./infografica-dogwash24.png" alt="Infografica DogWash24 con funzionalità H24, wallet, anti-overbooking e modelli di investimento" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FOOTER ═════════════════════════════════════════════ -->
+    <footer id="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">
+              <img src="./logo.png" alt="DogWash24 Logo" style="height: 120px; width: auto; max-width: 100%;" />
+            </div>
+            <p class="footer-desc">La piattaforma SaaS per gestire una toelettatura e lavaggio cani self-service H24: prenotazioni, wallet a crediti, check-in QR e sessioni live.</p>
+            <a href="mailto:info@dogwash24.it" class="footer-email">info@dogwash24.it</a>
+          </div>
+          <div>
+            <div class="footer-col-title">Piattaforma</div>
+            <div class="footer-links">
+              <a href="#come-funziona">Come funziona</a>
+              <a href="#funzionalita">Funzionalità</a>
+              <a href="#confronto">Confronto</a>
+              <a href="#prezzi">Prezzi</a>
+              <a href="https://toilettatura.vercel.app">Apri la webapp</a>
+            </div>
+          </div>
+          <div>
+            <div class="footer-col-title">Supporto</div>
+            <div class="footer-links">
+              <a href="#faq">FAQ</a>
+              <a href="#roi">Calcolatore ROI</a>
+              <a href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24">Richiedi una demo</a>
+              <a href="mailto:info@dogwash24.it">Contattaci</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-note">
+          📌 Nota tecnica: questa pagina è progettata per hosting statico (es. Aruba Hosting Basic). La webapp completa gira su infrastruttura Node.js/Vercel e si collega a (https://toilettatura.vercel.app/).
+        </div>
+        <div class="footer-bottom">
+          <span>© 2025 DogWash24. Tutti i diritti riservati.</span>
+          <span>Piattaforma SaaS per toelettatura self-service H24</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Back to top -->
+    <button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Torna in cima">↑</button>
+
+    <!-- ══ JAVASCRIPT ═════════════════════════════════════════ -->
+    <script>
+    // ── DATA ─────────────────────────────────────────────────
+    const TESTIMONIALS = [
+      { name:'Marco R.', role:'Titolare · DogSpa Milano', initials:'MR', accent:'#0ea5e9,#0284c7', rating:5, quote:'Con DogWash24 abbiamo azzerato i conflitti di prenotazione. Il check-in QR è il punto di svolta: clienti autonomi, struttura sempre operativa.' },
+      { name:'Giulia F.', role:'Gestore · WashPet Torino', initials:'GF', accent:'#14b8a6,#0d9488', rating:5, quote:'Il wallet a crediti ha semplificato tutto. I clienti caricano online, scalano ad ogni sessione, nessuna gestione cassa. Dashboard chiarissima.' },
+      { name:'Luca B.', role:'Proprietario · PetWash Roma', initials:'LB', accent:'#f59e0b,#d97706', rating:5, quote:'Avevo paura della complessità, invece setup in una settimana. Ora gestiamo 200+ sessioni al mese senza un operatore in struttura H24.' },
+      { name:'Sara M.', role:'Responsabile · DogClean Firenze', initials:'SM', accent:'#8b5cf6,#7c3aed', rating:5, quote:'Il calcolatore ROI non mente: da quando abbiamo aperto H24 le sessioni sono cresciute del 40%. Il sistema si paga da solo in 2 mesi.' }
+    ];
+
+    const COMPARISON_ROWS = [
+      { f:'Prenotazione online real-time', dw:true,  man:false, comp:'Parziale' },
+      { f:'Anti-overbooking automatico',   dw:true,  man:false, comp:false },
+      { f:'Wallet a crediti prepagati',    dw:true,  man:false, comp:false },
+      { f:'Check-in QR con token firmato', dw:true,  man:false, comp:false },
+      { f:'Sessioni live con timer',        dw:true,  man:false, comp:'Parziale' },
+      { f:'Dashboard admin completa',      dw:true,  man:false, comp:'Parziale' },
+      { f:'Report & export CSV',           dw:true,  man:'Fogli Excel', comp:'Parziale' },
+      { f:'Operatività H24 senza presidio',dw:true,  man:false, comp:false },
+      { f:'Profili cane multi-pet',        dw:true,  man:false, comp:'Parziale' },
+      { f:'Integrazione kiosk postazione', dw:true,  man:'N/A', comp:false },
+      { f:'Opzione Assistita / Sistema Ibrido', dw:true,  man:'Presenza fisica', comp:false }
+    ];
+
+    const FAQS = [
+      { q:'Quanto tempo serve per il setup iniziale?', a:'Di norma 7 giorni lavorativi dalla firma del contratto. Include configurazione struttura, postazioni, listino crediti, onboarding e test di verifica. Il nostro team segue l\'intero processo.' },
+      { q:'Il cliente deve scaricare un\'app?', a:'No. DogWash24 è una Progressive Web App accessibile da browser. Il cliente la "aggiunge alla schermata home" in un tap, senza passare dagli store. Funziona su iOS e Android.' },
+      { q:'Come funziona il check-in QR se non c\'è personale?', a:'Il QR contiene un token firmato con la finestra oraria. La postazione (kiosk o tablet in struttura) lo legge, valida il token, recupera i dati della prenotazione e avvia la sessione automaticamente. Nessun intervento umano.' },
+      { q:'Che cos\'è il "Sistema Ibrido" o con Assistenza?', a:'È una modalità innovativa che permette ai clienti di scegliere tra il self-service standard e il lavaggio assistito (con operatore) con un sovrapprezzo di +15 crediti. Lo staff riceve la notifica sulla Mappa Live e si occupa del lavaggio al posto del cliente.' },
+      { q:'Posso gestire più strutture (multi-sede)?', a:'Sì. L\'architettura è multi-tenant. Ogni struttura ha il suo dominio, postazioni, listino e report separati. Il gestore può avere una vista aggregata su tutte le sedi.' },
+      { q:'Cosa succede se la connessione internet cade in struttura?', a:'Il kiosk di postazione mantiene una cache locale della sessione attiva. Il QR viene validato offline per la finestra oraria già scaricata. Al ripristino della connessione la sessione si sincronizza.' },
+      { q:'Posso disdire il contratto in qualsiasi momento?', a:'Sì, con preavviso di 30 giorni per i piani a canone (Licenza e Noleggio+Update). Non ci sono vincoli annuali automatici. I tuoi dati rimangono esportabili per 90 giorni dopo la disdetta.' }
+    ];
+
+    // ── INIT ──────────────────────────────────────────────────
+    let billingAnnual = false;
+    let activeTestimonial = 0;
+    let testimonialInterval = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      buildQR();
+      startTimer();
+      buildBubbles();
+      buildComparisonTable();
+      buildTestimonials();
+      buildFAQ();
+      updateROI();
+      initIntersectionObserver();
+    });
+
+    // ── SCROLL PROGRESS ───────────────────────────────────────
+    window.addEventListener('scroll', function() {
+      const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+      document.getElementById('scroll-progress').style.width = pct + '%';
+      // Header
+      const h = document.getElementById('site-header');
+      h.classList.toggle('scrolled', window.scrollY > 20);
+      // Back to top
+      document.getElementById('back-top').classList.toggle('visible', window.scrollY > 500);
+    }, { passive: true });
+
+    // ── MOBILE MENU ───────────────────────────────────────────
+    function toggleMenu() {
+      const m = document.getElementById('mobile-menu');
+      m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+    }
+    function closeMenu() {
+      document.getElementById('mobile-menu').style.display = 'none';
+    }
+
+    // ── QR PATTERN ────────────────────────────────────────────
+    function buildQR() {
+      const grid = document.getElementById('qr-grid');
+      if (!grid) return;
+      const n = 9;
+      for (let i = 0; i < n * n; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'qr-cell ' + ((i * 73 + 13) % 7 < 3 ? 'qr-on' : 'qr-off');
+        grid.appendChild(cell);
+      }
+    }
+
+    // ── SESSION TIMER ─────────────────────────────────────────
+    function startTimer() {
+      let s = 4 * 60 + 12;
+      const el = document.getElementById('live-timer');
+      if (!el) return;
+      setInterval(function() {
+        s++;
+        const m = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        el.textContent = m + ':' + sec;
+      }, 1000);
+    }
+
+    // ── BUBBLES ───────────────────────────────────────────────
+    function buildBubbles() {
+      const container = document.getElementById('bubbles');
+      if (!container) return;
+      [8,19,30,41,52,63,74,85].forEach(function(left, i) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const size = 6 + ((i * 7) % 16);
+        b.style.cssText = 'left:' + left + '%;width:' + size + 'px;height:' + size + 'px;animation-delay:' + ((i * 0.7) % 4) + 's;animation-duration:' + (3.6 + (i * 1.3) % 2.4) + 's';
+        container.appendChild(b);
+      });
+    }
+
+    // ── COUNT-UP ANIMATION ────────────────────────────────────
+    function countUp(el) {
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const decimals = parseInt(el.dataset.decimals || '0');
+      const duration = 1400;
+      const start = performance.now();
+      function tick(now) {
+        const p = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = target * eased;
+        el.textContent = prefix + val.toLocaleString('it-IT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // ── INTERSECTION OBSERVER ─────────────────────────────────
+    function initIntersectionObserver() {
+      const obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            // Count-up
+            if (e.target.dataset.target) countUp(e.target);
+            obs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.fade-up').forEach(function(el) { obs.observe(el); });
+      document.querySelectorAll('[data-target]').forEach(function(el) { obs.observe(el); });
+    }
+
+    // ── COMPARISON TABLE ──────────────────────────────────────
+    function buildComparisonTable() {
+      let scoreDW = 0, scoreMan = 0, scoreComp = 0;
+      const container = document.getElementById('comparison-rows');
+      if (!container) return;
+      COMPARISON_ROWS.forEach(function(row) {
+        if (row.dw === true) scoreDW++;
+        if (row.man === true) scoreMan++;
+        if (row.comp === true) scoreComp++;
+
+        const div = document.createElement('div');
+        div.className = 'comparison-row';
+        div.innerHTML = '<div class="feature-name">' + row.f + '</div>' +
+          '<div class="cell"><span class="cell-label">DogWash24:</span>' + renderCell(row.dw, true) + '</div>' +
+          '<div class="cell"><span class="cell-label">Manuale:</span>' + renderCell(row.man, false) + '</div>' +
+          '<div class="cell"><span class="cell-label">Altri:</span>' + renderCell(row.comp, false) + '</div>';
+        container.appendChild(div);
+      });
+      document.getElementById('score-dw').textContent = scoreDW + '/' + COMPARISON_ROWS.length;
+      document.getElementById('score-manual').textContent = scoreMan + '/' + COMPARISON_ROWS.length;
+      document.getElementById('score-comp').textContent = scoreComp + '/' + COMPARISON_ROWS.length;
+    }
+
+    function renderCell(value, highlight) {
+      if (value === true) {
+        return '<div class="cell-yes ' + (highlight ? 'primary' : 'muted') + '">✓</div>';
+      }
+      if (value === false) {
+        return '<div class="cell-no">✗</div>';
+      }
+      if (value === 'N/A') return '<span class="cell-na">N/A</span>';
+      return '<span class="cell-partial">' + value + '</span>';
+    }
+
+    // ── ROI CALCULATOR ────────────────────────────────────────
+    function updateROI() {
+      const stations   = parseInt(document.getElementById('slider-stations').value);
+      const sessions   = parseInt(document.getElementById('slider-sessions').value);
+      const days       = parseInt(document.getElementById('slider-days').value);
+
+      document.getElementById('val-stations').textContent = stations;
+      document.getElementById('val-sessions').textContent = sessions;
+      document.getElementById('val-days').textContent     = days;
+
+      // Update slider gradient
+      ['stations','sessions','days'].forEach(function(id) {
+        const el = document.getElementById('slider-' + id);
+        const pct = (el.value - el.min) / (el.max - el.min) * 100;
+        el.style.background = 'linear-gradient(to right, #06b6d4 ' + pct + '%, rgba(255,255,255,0.08) ' + pct + '%)';
+      });
+
+      const AVG_TICKET   = 18;
+      const PLATFORM_COST = 300;
+      const UTIL_BOOST   = 0.34;
+      const OB_LOSS      = 0.15;
+      const MANUAL_DAYS  = 5;
+      const MANUAL_OH    = 400;
+
+      const manualSessionsMonth = stations * sessions * MANUAL_DAYS * 4.33;
+      const manualRevenue       = manualSessionsMonth * AVG_TICKET;
+      const manualNet           = manualRevenue - MANUAL_OH;
+
+      const dwSessionsMonth = stations * sessions * days * 4.33 * (1 + UTIL_BOOST);
+      const dwRevenue       = dwSessionsMonth * AVG_TICKET;
+      const dwNet           = dwRevenue - PLATFORM_COST;
+
+      const recoveredSessions = manualSessionsMonth * OB_LOSS;
+      const recoveredRevenue  = recoveredSessions * AVG_TICKET;
+
+      const extraRevenue = dwNet - manualNet;
+      const annualExtra  = extraRevenue * 12;
+
+      function eur(n) {
+        return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR', maximumFractionDigits:0 }).format(n);
+      }
+
+      animateValue('roi-extra',    extraRevenue, eur);
+      animateValue('roi-annual',   annualExtra,  eur);
+      animateValue('roi-net-dw',   dwNet,        eur);
+      document.getElementById('roi-net-manual').textContent = 'vs ' + eur(manualNet) + ' manuale';
+      animateValue('roi-sessions', dwSessionsMonth, function(n) { return Math.round(n).toString(); });
+      document.getElementById('roi-ov-sessions').textContent = Math.round(recoveredSessions);
+      animateValue('roi-ov-revenue', recoveredRevenue, function(n) { return '+' + eur(n); });
+    }
+
+    const _animTween = {};
+    function animateValue(id, targetVal, fmt) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (_animTween[id]) cancelAnimationFrame(_animTween[id]);
+      const startVal = parseFloat(el.dataset.current || '0') || 0;
+      el.dataset.current = targetVal;
+      const duration = 600;
+      const t0 = performance.now();
+      function tick(now) {
+        const p = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(startVal + (targetVal - startVal) * eased);
+        if (p < 1) _animTween[id] = requestAnimationFrame(tick);
+      }
+      _animTween[id] = requestAnimationFrame(tick);
+    }
+
+    // ── BILLING TOGGLE ────────────────────────────────────────
+    function toggleBilling() {
+      billingAnnual = !billingAnnual;
+      const btn = document.getElementById('billing-toggle');
+      btn.classList.toggle('on', billingAnnual);
+      document.getElementById('toggle-label-mensile').classList.toggle('active', !billingAnnual);
+      document.getElementById('toggle-label-annuale').classList.toggle('active', billingAnnual);
+
+      if (billingAnnual) {
+        document.getElementById('price-1').textContent = '125€';
+        document.getElementById('annual-note-1').textContent = '1.500€/anno · risparmi 300€';
+        document.getElementById('price-2').textContent = '250€';
+        document.getElementById('annual-note-2').textContent = '3.000€/anno · risparmi 600€';
+      } else {
+        document.getElementById('price-1').textContent = '150€';
+        document.getElementById('annual-note-1').textContent = '';
+        document.getElementById('price-2').textContent = '300€';
+        document.getElementById('annual-note-2').textContent = '';
+      }
+    }
+
+    // ── TESTIMONIALS ─────────────────────────────────────────
+    function buildTestimonials() {
+      const grid = document.getElementById('testimonials-grid');
+      const dots = document.getElementById('ctrl-dots');
+      if (!grid) return;
+
+      TESTIMONIALS.forEach(function(t, i) {
+        // Card
+        const card = document.createElement('div');
+        card.className = 'testimonial-card fade-up ' + (i === 0 ? 'active' : '');
+        card.style.transitionDelay = (i % 2 * 0.1) + 's';
+        card.id = 'tcard-' + i;
+        card.innerHTML =
+          '<div class="quote-icon">"</div>' +
+          '<div class="testimonial-stars">' + '★'.repeat(t.rating).split('').map(function() { return '<span class="star">★</span>'; }).join('') + '</div>' +
+          '<p class="testimonial-text">"' + t.quote + '"</p>' +
+          '<div class="testimonial-author">' +
+            '<div class="author-avatar" style="background:linear-gradient(135deg,' + t.accent + ')">' + t.initials + '</div>' +
+            '<div><div class="author-name">' + t.name + '</div><div class="author-role">' + t.role + '</div></div>' +
+          '</div>';
+        grid.appendChild(card);
+
+        // Dot
+        const dot = document.createElement('button');
+        dot.className = 'ctrl-dot ' + (i === 0 ? 'active' : '');
+        dot.id = 'tdot-' + i;
+        dot.setAttribute('aria-label', 'Testimonianza ' + (i+1));
+        dot.onclick = function() { setTestimonial(i); };
+        dots.appendChild(dot);
+      });
+
+      testimonialInterval = setInterval(function() { nextTestimonial(); }, 6000);
+    }
+
+    function setTestimonial(idx) {
+      document.querySelectorAll('.testimonial-card').forEach(function(c, i) {
+        c.classList.toggle('active', i === idx);
+      });
+      document.querySelectorAll('.ctrl-dot').forEach(function(d, i) {
+        d.classList.toggle('active', i === idx);
+      });
+      activeTestimonial = idx;
+    }
+
+    function nextTestimonial() {
+      setTestimonial((activeTestimonial + 1) % TESTIMONIALS.length);
+    }
+
+    function prevTestimonial() {
+      setTestimonial((activeTestimonial - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+    }
+
+    // ── FAQ ACCORDION ─────────────────────────────────────────
+    function buildFAQ() {
+      const list = document.getElementById('faq-list');
+      if (!list) return;
+      FAQS.forEach(function(faq, i) {
+        const item = document.createElement('div');
+        item.className = 'faq-item';
+        item.innerHTML =
+          '<button class="faq-q" onclick="toggleFAQ(this)" aria-expanded="false">' +
+            '<span class="faq-q-inner"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="faq-icon" style="width: 16px; height: 16px; color: var(--cyan); display: inline-block; vertical-align: middle; margin-right: 8px; margin-top: -2px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>' + faq.q + '</span>' +
+            '<span class="faq-arrow">▾</span>' +
+          '</button>' +
+          '<div class="faq-a">' + faq.a + '</div>';
+        list.appendChild(item);
+      });
+    }
+
+    function toggleFAQ(btn) {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-item.open').forEach(function(el) { el.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+    }
+
+    // ── FORM SUBMIT ───────────────────────────────────────────
+    function submitForm(e) {
+      e.preventDefault();
+      const email = document.getElementById('cta-email').value.trim();
+      const errorEl = document.getElementById('form-error');
+      const successEl = document.getElementById('form-success');
+      errorEl.style.display = 'none';
+      successEl.style.display = 'none';
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const btn = document.getElementById('form-btn');
+      btn.disabled = true;
+      btn.textContent = '✅ Richiesta inviata!';
+
+      // Apri mailto come fallback silenzioso
+      window.location.href = 'mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24&body=Email%3A%20' + encodeURIComponent(email);
+
+      successEl.style.display = 'block';
+      document.getElementById('cta-email').value = '';
+
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Richiedi una demo <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        successEl.style.display = 'none';
+      }, 4000);
+    }
+    </script>
   </body>
 </html>

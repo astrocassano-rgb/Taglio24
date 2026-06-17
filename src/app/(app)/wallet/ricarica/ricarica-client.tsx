@@ -65,6 +65,21 @@ export function RicaricaClient({ pack }: { pack: WalletPackId }) {
                 setLoading(true);
                 setMessage(null);
                 try {
+                  // Prova prima ad avviare Stripe Checkout
+                  const stripeRes = await fetch("/api/wallet/stripe-checkout", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ pack })
+                  });
+                  const stripeBody = await stripeRes.json().catch(() => null);
+
+                  if (stripeRes.ok && stripeBody?.url) {
+                    window.location.href = stripeBody.url;
+                    return;
+                  }
+
+                  // Fallback su ricarica demo locale se Stripe non è configurato o fallisce
+                  console.log("[Ricarica] Fallback su ricarica demo...");
                   const res = await fetch("/api/wallet/topup", {
                     method: "POST",
                     headers: { "content-type": "application/json" },
@@ -76,7 +91,7 @@ export function RicaricaClient({ pack }: { pack: WalletPackId }) {
                     setMessage(err);
                     return;
                   }
-                  router.push("/wallet");
+                  router.push("/wallet?success=true");
                 } catch (e: any) {
                   setMessage(String(e?.message ?? "Ricarica non riuscita."));
                 } finally {
