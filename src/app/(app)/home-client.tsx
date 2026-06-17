@@ -235,7 +235,6 @@ export default function HomeClient() {
     return <div className="p-4 text-center text-sm text-slate-400">Caricamento in corso...</div>;
   }
 
-  // --- VISTA OSPITE (LANDING PAGE) ---
   if (!isLogged) {
     return (
       <div className="space-y-6 py-4 max-w-md mx-auto">
@@ -259,6 +258,7 @@ export default function HomeClient() {
           </p>
         </section>
 
+        {/* Form di Login / Registrazione integrato */}
         <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl overflow-hidden">
           <CardHeader className="space-y-1 pb-3 border-b border-slate-800/40 bg-slate-950/20">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Area Riservata</p>
@@ -381,31 +381,93 @@ export default function HomeClient() {
                   Reinvia email di conferma
                 </Button>
               )}
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
-                  variant="secondary"
-                  type="button"
-                  onClick={() => handleOAuth("google")}
-                  disabled={authLoading}
-                >
-                  <span className="text-sm font-bold mr-1.5">G</span>
-                  Google
-                </Button>
-                <Button
-                  className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
-                  variant="secondary"
-                  type="button"
-                  onClick={() => handleOAuth("apple")}
-                  disabled={authLoading}
-                >
-                  <Apple className="h-4 w-4 mr-1.5" />
-                  Apple
-                </Button>
-              </div>
+              <Button
+                className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
+                variant="secondary"
+                type="button"
+                onClick={() => handleOAuth("google")}
+                disabled={authLoading}
+              >
+                <span className="text-sm font-bold mr-1.5">G</span>
+                Continua con Google
+              </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Guida informativa step-by-step ripristinata */}
+        <section className="grid gap-3">
+          <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 rounded-3xl overflow-hidden">
+            <CardHeader className="space-y-1">
+              <p className="text-xs font-medium text-slate-400">Funzionalità</p>
+              <p className="text-lg font-semibold tracking-tight text-slate-100">Cosa puoi fare, passo dopo passo</p>
+              <p className="text-sm leading-relaxed text-slate-400">
+                Una sola area per capire subito sia cosa puoi gestire nell&apos;app sia come funziona il percorso di prenotazione.
+              </p>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <div className="rounded-3xl bg-gradient-to-br from-blue-500/15 to-cyan-500/10 p-4 ring-1 ring-inset ring-blue-500/20">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500/15 ring-1 ring-inset ring-blue-400/30">
+                    <CalendarDays className="h-6 w-6 text-blue-200" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-50">1. Crea l&apos;account e accedi</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-blue-200">Inizio rapido</p>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-350">
+                      Entri nella tua area personale e sblocchi la prenotazione reale, lo storico e la gestione completa del servizio.
+                    </p>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-blue-100">
+                      Accesso, dashboard e prenotazione attiva
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-gradient-to-br from-emerald-500/15 to-lime-500/10 p-4 ring-1 ring-inset ring-emerald-500/20">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 ring-1 ring-inset ring-emerald-400/30">
+                    <PawPrint className="h-6 w-6 text-emerald-200" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-50">2. Inserisci i dati del tuo cane</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">Scheda completa</p>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-350">
+                      Salvi nome, taglia, peso e note utili per avere profili ordinati, pronti da usare per ogni nuova prenotazione.
+                    </p>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">
+                      Profili cane, note e storico utilizzo
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 p-4 ring-1 ring-inset ring-amber-500/20">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-inset ring-amber-400/30">
+                    <CreditCard className="h-6 w-6 text-amber-200" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-50">3. Ricarica, scegli slot e conferma</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">Prenotazione</p>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-350">
+                      Controlli il wallet, verifichi disponibilita di giorni e orari e prenoti la postazione migliore per il tuo cane.
+                    </p>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">
+                      Crediti, disponibilita e conferma slot
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
         <div className="pt-2 text-center">
           <Link href="/piattaforma" className="text-xs font-semibold text-slate-400 underline-offset-4 hover:underline hover:text-slate-200 transition-colors">

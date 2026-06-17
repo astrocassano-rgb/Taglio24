@@ -90,7 +90,7 @@ export default function PrenotaPage() {
   const [availabilityLoaded, setAvailabilityLoaded] = useState(false);
   const [availabilityHint, setAvailabilityHint] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<StationType[]>(["WASH_BASIN"]);
-  const [wizardStarted, setWizardStarted] = useState(false);
+  const [wizardStarted, setWizardStarted] = useState(true);
   const [publicStep, setPublicStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
@@ -477,14 +477,15 @@ export default function PrenotaPage() {
                     <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                     <span className="text-sm font-bold tracking-tight text-slate-200">Nuova Prenotazione</span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="md"
-                    className="h-8 text-xs text-slate-400 hover:text-slate-200 rounded-xl px-2.5"
-                    onClick={() => setWizardStarted(false)}
-                  >
-                    Annulla
-                  </Button>
+                  <Link href="/">
+                    <Button
+                      variant="ghost"
+                      size="md"
+                      className="h-8 text-xs text-slate-400 hover:text-slate-200 rounded-xl px-2.5 cursor-pointer"
+                    >
+                      Annulla
+                    </Button>
+                  </Link>
                 </div>
                 
                 {/* Step Indicators */}
