@@ -6,7 +6,7 @@ import type { Route } from "next";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CalendarDays, CheckCircle2, Clock3, Droplets, Lock, PawPrint, RefreshCw, Sparkles, ChevronLeft, type LucideIcon } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, Droplets, Lock, PawPrint, RefreshCw, Sparkles, ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
 import { estimateDurationForBundle, getPrimaryService, getServiceSummary, normalizeServiceBundle, serializeServiceBundle, SERVICE_LABELS, type StationType } from "@/lib/booking-planner";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
 import { safeGetSession } from "@/lib/supabase/safe-session";
@@ -29,6 +29,7 @@ type PublicSuggestedSlot = {
 const slotMinutes = 15;
 const dayHours = { start: 8, end: 20 };
 const calendarDays = 90;
+const WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 
 const serviceOptions: { value: StationType; label: string; subtitle: string; Icon: LucideIcon }[] = [
   { value: "WASH_BASIN", label: "Lavaggio", subtitle: "Bagno completo e rapido", Icon: Sparkles },
@@ -99,6 +100,7 @@ export default function PrenotaPage() {
   const [monthPart, setMonthPart] = useState("");
   const [yearPart, setYearPart] = useState("");
   const [showCalendarCard, setShowCalendarCard] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), 1));
   const wheelRef = useRef<HTMLDivElement | null>(null);
 
   const primaryService = useMemo(() => getPrimaryService(selectedServices), [selectedServices]);
@@ -208,6 +210,36 @@ export default function PrenotaPage() {
       return { key, label, ranges, available: ranges.length > 0 };
     });
   }, [availabilityByStation, availabilityLoaded, calendar, durationMinutes, stationsForService]);
+
+  const availableDaysSet = useMemo(() => {
+    return new Set(weekTimeWindows.filter((w) => w.available).map((w) => w.key));
+  }, [weekTimeWindows]);
+
+  const handlePrevMonth = () => {
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleSelectDay = (key: string) => {
+    setPreviewDayKey(key);
+  };
+
+  const { calendarYear, calendarMonth, offset, daysInMonth } = useMemo(() => {
+    const y = currentMonth.getFullYear();
+    const m = currentMonth.getMonth();
+    const tot = new Date(y, m + 1, 0).getDate();
+    const firstDay = new Date(y, m, 1).getDay();
+    const off = firstDay === 0 ? 6 : firstDay - 1;
+    return {
+      calendarYear: y,
+      calendarMonth: m,
+      offset: off,
+      daysInMonth: Array.from({ length: tot }, (_, i) => i + 1)
+    };
+  }, [currentMonth]);
 
   const suggestedDayKey = useMemo(() => {
     return weekTimeWindows.find((day) => day.available)?.key ?? weekTimeWindows[0]?.key ?? ymd(calendarStart);
@@ -669,22 +701,93 @@ export default function PrenotaPage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="pt-1"
+                            className="pt-1 overflow-hidden"
                           >
-                            <div className="rounded-xl bg-slate-900 p-2 border border-slate-800">
-                              <Input
-                                type="date"
-                                min={ymd(calendarStart)}
-                                max={calendarEndKey}
-                                value={previewDayKey || suggestedDayKey}
-                                className="bg-slate-950 border-slate-800 rounded-lg text-xs text-slate-100"
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (!value) return;
-                                  setPreviewDayKey(value);
-                                  setShowCalendarCard(false);
-                                }}
-                              />
+                            <div className="rounded-2xl bg-slate-950/60 p-3 border border-slate-800/80 space-y-3">
+                              {/* Header navigazione */}
+                              <div className="flex items-center justify-between">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="md"
+                                  className="h-7 w-7 p-0 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer"
+                                  onClick={handlePrevMonth}
+                                  disabled={currentMonth.getFullYear() === calendarStart.getFullYear() && currentMonth.getMonth() === calendarStart.getMonth()}
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <p className="text-xs font-bold text-slate-200 capitalize tracking-wide">
+                                  {currentMonth.toLocaleDateString("it-IT", { month: "long", year: "numeric" })}
+                                </p>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="md"
+                                  className="h-7 w-7 p-0 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer"
+                                  onClick={handleNextMonth}
+                                  disabled={
+                                    calendar[calendar.length - 1]
+                                      ? currentMonth.getFullYear() === calendar[calendar.length - 1]!.getFullYear() &&
+                                        currentMonth.getMonth() === calendar[calendar.length - 1]!.getMonth()
+                                      : false
+                                  }
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              {/* Giorni della settimana */}
+                              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                {WEEKDAYS.map((dayName) => (
+                                  <div key={dayName}>{dayName}</div>
+                                ))}
+                              </div>
+
+                              {/* Griglia dei giorni */}
+                              <div className="grid grid-cols-7 gap-1 text-center">
+                                {/* Giorni vuoti all'inizio */}
+                                {Array.from({ length: offset }).map((_, idx) => (
+                                  <div key={`empty-${idx}`} className="h-8 w-8" />
+                                ))}
+                                {/* Giorni del mese */}
+                                {daysInMonth.map((d) => {
+                                  const cellDate = new Date(calendarYear, calendarMonth, d);
+                                  const cellKey = ymd(cellDate);
+                                  
+                                  const isBeforeStart = cellKey < ymd(calendarStart);
+                                  const isAfterEnd = cellKey > calendarEndKey;
+                                  const isAvailable = availableDaysSet.has(cellKey);
+                                  const isDisabled = isBeforeStart || isAfterEnd || !isAvailable;
+                                  const isSelected = cellKey === (previewDayKey || suggestedDayKey);
+                                  const isToday = cellKey === ymd(new Date());
+
+                                  return (
+                                    <button
+                                      key={d}
+                                      type="button"
+                                      disabled={isDisabled}
+                                      onClick={() => handleSelectDay(cellKey)}
+                                      className={cn(
+                                        "h-8 w-8 text-xs rounded-xl flex items-center justify-center mx-auto transition-all relative cursor-pointer",
+                                        isSelected
+                                          ? "bg-blue-600 text-slate-50 font-bold shadow-md shadow-blue-600/30 scale-105"
+                                          : isToday && !isDisabled
+                                          ? "border border-blue-500/30 text-blue-400 font-semibold hover:bg-slate-800/40"
+                                          : !isDisabled
+                                          ? "text-slate-200 hover:bg-slate-800/40"
+                                          : "text-slate-650 opacity-20 pointer-events-none"
+                                      )}
+                                    >
+                                      <span className="relative flex flex-col items-center justify-center w-full h-full">
+                                        <span className={cn(isSelected && "translate-y-[-2px]")}>{d}</span>
+                                        {isAvailable && !isSelected && (
+                                          <span className="absolute bottom-1 h-1 w-1 rounded-full bg-emerald-500" />
+                                        )}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </motion.div>
                         )}
