@@ -40,7 +40,17 @@ function ResetPasswordContent() {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
-            setMessage("Link di reset non valido o scaduto. Generane uno nuovo e riprova.");
+            const raw = String((error as any)?.message ?? "");
+            const lower = raw.toLowerCase();
+            if (lower.includes("pkce") && lower.includes("code verifier")) {
+              setMessage("Questo link di reset e' stato aperto in un browser/dispositivo diverso da quello che ha avviato la procedura. Apri il link nello stesso browser oppure richiedi un nuovo reset.");
+            } else {
+              setMessage("Link di reset non valido o scaduto. Generane uno nuovo e riprova.");
+            }
+            const url = new URL(window.location.href);
+            url.searchParams.delete("code");
+            url.searchParams.delete("type");
+            window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
             return;
           }
 

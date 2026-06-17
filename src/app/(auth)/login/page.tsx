@@ -69,7 +69,11 @@ function LoginContent() {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
-            setMessage(String(error.message || "Link non valido o scaduto. Genera un nuovo link e riprova."));
+            setMessage(toFriendlyMessage(error, "Link non valido o scaduto. Genera un nuovo link e riprova."));
+            const url = new URL(window.location.href);
+            url.searchParams.delete("code");
+            url.searchParams.delete("type");
+            window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
             return;
           }
 
@@ -123,6 +127,9 @@ function LoginContent() {
 
     if (lower.includes("name not resolved") || lower.includes("dns") || lower.includes("failed to fetch") || lower.includes("fetch failed")) {
       return "Connessione a Supabase non riuscita. Controlla URL e chiave in .env.local e riavvia il server di sviluppo.";
+    }
+    if (lower.includes("pkce") && lower.includes("code verifier")) {
+      return "Questo link e' stato aperto in un browser/dispositivo diverso da quello che ha avviato la procedura. Apri il link nello stesso browser (non dentro l'app Gmail) oppure ripeti il login/registrazione e poi usa il link appena ricevuto.";
     }
     if (lower.includes("invalid login credentials")) return "Credenziali non valide. Controlla email e password.";
     if (lower.includes("email not confirmed")) return "Email non confermata. Controlla la posta e conferma la registrazione, poi accedi.";
