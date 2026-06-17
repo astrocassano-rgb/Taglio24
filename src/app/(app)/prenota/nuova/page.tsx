@@ -1,43 +1,29 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { Button } from "@/components/ui/button";
-import BookingWizardClient from "./booking-wizard-client";
-import PrenotaColonneClient from "./prenota-colonne-client";
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Route } from "next";
 
-export default function NuovaPrenotazionePage() {
+function NuovaPrenotazioneRedirect() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const params = searchParams?.toString() ? `?${searchParams.toString()}` : "";
+    router.replace(`/prenota${params}` as Route);
+  }, [router, searchParams]);
+
   return (
-    <Suspense fallback={<div className="text-sm text-slate-300">Caricamento prenotazione...</div>}>
-      <NuovaPrenotazioneContent />
-    </Suspense>
+    <div className="text-sm text-slate-400 text-center py-10">
+      Reindirizzamento in corso...
+    </div>
   );
 }
 
-function NuovaPrenotazioneContent() {
-  const [mode, setMode] = useState<"simple" | "advanced">("simple");
-
+export default function NuovaPrenotazionePage() {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          type="button"
-          variant={mode === "simple" ? "primary" : "secondary"}
-          className="w-full"
-          onClick={() => setMode("simple")}
-        >
-          Vista semplice
-        </Button>
-        <Button
-          type="button"
-          variant={mode === "advanced" ? "primary" : "secondary"}
-          className="w-full"
-          onClick={() => setMode("advanced")}
-        >
-          Vista avanzata
-        </Button>
-      </div>
-
-      {mode === "simple" ? <BookingWizardClient /> : <PrenotaColonneClient />}
-    </div>
+    <Suspense fallback={<div className="text-sm text-slate-400 text-center py-10">Caricamento...</div>}>
+      <NuovaPrenotazioneRedirect />
+    </Suspense>
   );
 }

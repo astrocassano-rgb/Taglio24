@@ -1,13 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CalendarDays, CheckCircle2, Clock3, Droplets, Lock, PawPrint, RefreshCw, Sparkles, ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
-import { estimateDurationForBundle, getPrimaryService, getServiceSummary, normalizeServiceBundle, serializeServiceBundle, SERVICE_LABELS, type StationType } from "@/lib/booking-planner";
+import { 
+  CalendarDays, 
+  CheckCircle2, 
+  Clock3, 
+  Droplets, 
+  Lock, 
+  PawPrint, 
+  RefreshCw, 
+  Sparkles, 
+  ChevronLeft, 
+  ChevronRight, 
+  CreditCard, 
+  Plus, 
+  AlertCircle, 
+  X,
+  type LucideIcon 
+} from "lucide-react";
+import { 
+  estimateDurationForBundle, 
+  getPrimaryService, 
+  getServiceSummary, 
+  normalizeServiceBundle, 
+  parseServiceBundle,
+  serializeServiceBundle, 
+  SERVICE_LABELS, 
+  type StationType 
+} from "@/lib/booking-planner";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
 import { safeGetSession } from "@/lib/supabase/safe-session";
 import type { Database } from "@/types/database";
@@ -16,14 +42,17 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type Station = Database["public"]["Tables"]["stations"]["Row"];
 type AvailabilityRow = Database["public"]["Functions"]["get_booking_availability"]["Returns"][number];
-type PublicSuggestedSlot = {
-  key: string;
-  stationId: string;
-  stationName: string;
+type Dog = Database["public"]["Tables"]["dogs"]["Row"];
+
+type CustomSlot = {
+  time: string;
   start: Date;
   end: Date;
-  label: string;
-  availableCount: number;
+  stationId: string;
+  stationName: string;
+  isPast: boolean;
+  isAvailable: boolean;
+  freeStationsCount: number;
 };
 
 const slotMinutes = 15;
@@ -75,35 +104,59 @@ function isValidLocalDateParts(day: number, month: number, year: number) {
   return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
 }
 
-function pad2(value: string) {
-  return value.padStart(2, "0");
-}
-
 export default function PrenotaPage() {
+  const router = useRouter();
   const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
   const isConfigured = Boolean(supabase);
+
   const calendarStart = useMemo(() => startOfLocalDay(new Date()), []);
   const calendar = useMemo(() => Array.from({ length: calendarDays }, (_, i) => addDays(calendarStart, i)), [calendarStart]);
 
+  // Stati generali
   const [stations, setStations] = useState<Station[]>([]);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
   const [availabilityLoaded, setAvailabilityLoaded] = useState(false);
   const [availabilityHint, setAvailabilityHint] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Dati utente
+  const [isLogged, setIsLogged] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [dogs, setDogs] = useState<Dog[]>([]);
+  const [selectedDogId, setSelectedDogId] = useState("");
+  const [balanceCredits, setBalanceCredits] = useState<number | null>(null);
+
+  // Selezione della prenotazione
   const [selectedServices, setSelectedServices] = useState<StationType[]>(["WASH_BASIN"]);
   const [selectedFascia, setSelectedFascia] = useState<"night" | "morning" | "afternoon" | "evening">("morning");
-  const [loading, setLoading] = useState(false);
-  const [isLogged, setIsLogged] = useState(false);
   const [previewDayKey, setPreviewDayKey] = useState("");
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), 1));
+  const [initialTimeFromUrl, setInitialTimeFromUrl] = useState<string | null>(null);
+
+  // Stato modale di conferma
+  const [confirmSlot, setConfirmSlot] = useState<CustomSlot | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState<string | null>(null);
+  const [successSummary, setSuccessSummary] = useState<string | null>(null);
+
+  // Cane selezionato
+  const selectedDog = useMemo(() => {
+    return dogs.find((d) => d.id === selectedDogId) || null;
+  }, [dogs, selectedDogId]);
+
+  // Durata basata sul cane e sui servizi scelti
+  const durationEstimate = useMemo(() => {
+    return estimateDurationForBundle(selectedServices, selectedDog);
+  }, [selectedServices, selectedDog]);
+  const durationMinutes = durationEstimate.suggestedMinutes;
 
   const primaryService = useMemo(() => getPrimaryService(selectedServices), [selectedServices]);
-  const publicEstimate = useMemo(() => estimateDurationForBundle(selectedServices, null), [selectedServices]);
-  const durationMinutes = publicEstimate.suggestedMinutes;
 
   const availabilityFrom = useMemo(
     () => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), calendarStart.getDate(), dayHours.start, 0, 0, 0),
     [calendarStart]
   );
+  
   const availabilityTo = useMemo(() => {
     const last = calendar[calendar.length - 1] ?? calendarStart;
     return new Date(last.getFullYear(), last.getMonth(), last.getDate(), dayHours.end, 0, 0, 0);
@@ -128,6 +181,7 @@ export default function PrenotaPage() {
     return map;
   }, [availability]);
 
+  // Calcolo delle disponibilità per ciascun giorno
   const weekTimeWindows = useMemo(() => {
     const startSlotsCount = Math.max(0, Math.floor(((dayHours.end - dayHours.start) * 60 - durationMinutes) / slotMinutes) + 1);
 
@@ -183,6 +237,7 @@ export default function PrenotaPage() {
 
   const dayKey = previewDayKey || suggestedDayKey;
 
+  // Elaborazione degli slot del giorno corrente con identificazione postazione libera
   const daySlotsInfo = useMemo(() => {
     if (!dayKey || !stationsForService.length) return [];
 
@@ -197,6 +252,8 @@ export default function PrenotaPage() {
 
       let isAvailable = false;
       let freeStationsCount = 0;
+      let stationId = "";
+      let stationName = "";
       
       if (!isPast) {
         const freeStations = stationsForService.filter((station) => {
@@ -205,78 +262,159 @@ export default function PrenotaPage() {
         });
         isAvailable = freeStations.length > 0;
         freeStationsCount = freeStations.length;
+        if (isAvailable && freeStations[0]) {
+          stationId = freeStations[0].id;
+          stationName = freeStations[0].name;
+        }
       }
-
-      const params = new URLSearchParams({
-        services: serializeServiceBundle(selectedServices),
-        duration: String(durationMinutes),
-        day: dayKey,
-        time: timeLabel
-      });
-      const bookingHref = `/prenota/nuova?${params.toString()}`;
-      const loginHref = `/login?next=${encodeURIComponent(bookingHref)}`;
 
       return {
         time: timeLabel,
+        start: slotStart,
+        end: slotEnd,
+        stationId,
+        stationName,
         isPast,
         isAvailable,
-        freeStationsCount,
-        bookingHref,
-        loginHref
-      };
+        freeStationsCount
+      } as CustomSlot;
     });
-  }, [dayKey, fasciaSlots, durationMinutes, stationsForService, availabilityByStation, selectedServices]);
+  }, [dayKey, fasciaSlots, durationMinutes, stationsForService, availabilityByStation]);
 
   const calendarEndKey = useMemo(() => {
     const last = calendar[calendar.length - 1] ?? calendarStart;
     return ymd(last);
   }, [calendar, calendarStart]);
 
+  // 1. Controllo sessione utente
   useEffect(() => {
     async function checkSession() {
       if (!supabase) return;
       const { data } = await safeGetSession(supabase);
       setIsLogged(Boolean(data.session));
+      setUserId(data.session?.user?.id ?? null);
     }
     void checkSession();
   }, [supabase]);
 
+  // 2. Caricamento dati utente (cani e wallet)
   useEffect(() => {
-    async function loadAvailability() {
-      if (!supabase) return;
-      setLoading(true);
-      setAvailabilityHint(null);
+    async function loadUserData() {
+      if (!supabase || !userId) {
+        setDogs([]);
+        setBalanceCredits(null);
+        return;
+      }
       try {
-        const { data: stationsData, error: stationsError } = await supabase.from("stations").select("*").order("created_at", { ascending: true });
-        if (stationsError) throw stationsError;
-        setStations(stationsData ?? []);
-
-        const args = {
-          p_from: availabilityFrom.toISOString(),
-          p_to: availabilityTo.toISOString()
-        } as Database["public"]["Functions"]["get_booking_availability"]["Args"];
-        const { data: availData, error: availError } = await supabase.rpc("get_booking_availability", args);
-        if (availError) throw availError;
-        setAvailability(availData ?? []);
-        setAvailabilityLoaded(true);
-      } catch (e: any) {
-        setAvailabilityLoaded(false);
-        const msg = e?.message ?? "Disponibilità non disponibile.";
-        const lower = String(msg).toLowerCase();
-        setAvailabilityHint(
-          msg.includes("get_booking_availability")
-            ? "Disponibilità giorni non attiva: esegui la migrazione 0002_booking_availability.sql su Supabase."
-            : lower.includes("failed to fetch") || lower.includes("fetch failed") || lower.includes("name not resolved") || lower.includes("dns")
-              ? "Connessione a Supabase non riuscita. Controlla URL e chiavi del progetto e riavvia il server."
-              : msg
-        );
-      } finally {
-        setLoading(false);
+        const [dogsRes, walletRes] = await Promise.all([
+          supabase.from("dogs").select("*").order("created_at", { ascending: false }),
+          supabase.from("wallets").select("balance_credits").eq("customer_id", userId).maybeSingle()
+        ]);
+        
+        if (dogsRes.data && dogsRes.data.length > 0) {
+          setDogs(dogsRes.data);
+          setSelectedDogId(dogsRes.data[0]?.id || "");
+        } else {
+          setDogs([]);
+          setSelectedDogId("");
+        }
+        
+        if (walletRes.data) {
+          setBalanceCredits(walletRes.data.balance_credits);
+        } else {
+          setBalanceCredits(0);
+        }
+      } catch (err) {
+        console.error("Errore durante il caricamento dei dati utente:", err);
       }
     }
+    void loadUserData();
+  }, [supabase, userId]);
 
+  // 3. Ripristino stato da Query Parameters (es. dopo il redirect del login)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const servicesParam = searchParams.get("services");
+    const dayParam = searchParams.get("day");
+    const timeParam = searchParams.get("time");
+
+    if (servicesParam) {
+      const parsed = parseServiceBundle(servicesParam);
+      setSelectedServices(parsed);
+    }
+    
+    if (dayParam && /^\d{4}-\d{2}-\d{2}$/.test(dayParam)) {
+      setPreviewDayKey(dayParam);
+      const parsedDay = new Date(`${dayParam}T00:00:00`);
+      if (!Number.isNaN(parsedDay.getTime())) {
+        setCurrentMonth(new Date(parsedDay.getFullYear(), parsedDay.getMonth(), 1));
+      }
+    }
+    
+    if (timeParam && /^\d{2}:\d{2}$/.test(timeParam)) {
+      setInitialTimeFromUrl(timeParam);
+      const [hour] = timeParam.split(":").map(Number);
+      if (hour !== undefined) {
+        if (hour < 6) setSelectedFascia("night");
+        else if (hour < 12) setSelectedFascia("morning");
+        else if (hour < 18) setSelectedFascia("afternoon");
+        else setSelectedFascia("evening");
+      }
+    }
+  }, []);
+
+  // 4. Se è presente un orario iniziale dall'URL ed i dati sono stati caricati, apriamo la modale di conferma
+  useEffect(() => {
+    if (initialTimeFromUrl && daySlotsInfo.length > 0 && isLogged && dogs.length > 0) {
+      const matchedSlot = daySlotsInfo.find((s) => s.time === initialTimeFromUrl && s.isAvailable);
+      if (matchedSlot) {
+        setConfirmSlot(matchedSlot);
+        setBookingMessage(null);
+        setSuccessSummary(null);
+        setInitialTimeFromUrl(null); // Consumiamo il parametro
+      }
+    }
+  }, [initialTimeFromUrl, daySlotsInfo, isLogged, dogs]);
+
+  // 5. Caricamento disponibilità generali (stazioni + calendario occupazioni)
+  const loadAvailability = async () => {
+    if (!supabase) return;
+    setLoading(true);
+    setAvailabilityHint(null);
+    try {
+      const { data: stationsData, error: stationsError } = await supabase.from("stations").select("*").order("created_at", { ascending: true });
+      if (stationsError) throw stationsError;
+      setStations(stationsData ?? []);
+
+      const args = {
+        p_from: availabilityFrom.toISOString(),
+        p_to: availabilityTo.toISOString()
+      } as Database["public"]["Functions"]["get_booking_availability"]["Args"];
+      const { data: availData, error: availError } = await supabase.rpc("get_booking_availability", args);
+      if (availError) throw availError;
+      setAvailability(availData ?? []);
+      setAvailabilityLoaded(true);
+    } catch (e: any) {
+      setAvailabilityLoaded(false);
+      const msg = e?.message ?? "Disponibilità non caricata.";
+      const lower = String(msg).toLowerCase();
+      setAvailabilityHint(
+        msg.includes("get_booking_availability")
+          ? "Disponibilità giorni non attiva: esegui la migrazione 0002_booking_availability.sql su Supabase."
+          : lower.includes("failed to fetch") || lower.includes("fetch failed") || lower.includes("name not resolved") || lower.includes("dns")
+            ? "Connessione a Supabase non riuscita. Controlla URL e chiavi del progetto e riavvia il server."
+            : msg
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (!supabase) return;
     void loadAvailability();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availabilityFrom, availabilityTo, supabase]);
 
   const selectedPreviewDay = useMemo(() => {
@@ -319,6 +457,84 @@ export default function PrenotaPage() {
     });
   }
 
+  // Gestione della prenotazione al click su uno slot
+  const handleSlotClick = (slot: CustomSlot) => {
+    if (!isLogged) {
+      const params = new URLSearchParams({
+        services: serializeServiceBundle(selectedServices),
+        day: dayKey,
+        time: slot.time
+      });
+      const redirectUrl = `/prenota?${params.toString()}`;
+      router.push(`/login?next=${encodeURIComponent(redirectUrl)}` as Route);
+      return;
+    }
+    
+    // Se loggato, apre la modale di conferma
+    setConfirmSlot(slot);
+    setBookingMessage(null);
+    setSuccessSummary(null);
+  };
+
+  // Costo stimato in crediti (1 credito = 1 minuto basato sulla postazione)
+  const estimatedCredits = useMemo(() => {
+    if (!confirmSlot) return 0;
+    const station = stations.find((s) => s.id === confirmSlot.stationId);
+    const costPerMin = station?.cost_per_minute ?? 1;
+    return durationMinutes * costPerMin;
+  }, [confirmSlot, durationMinutes, stations]);
+
+  const hasEnoughCredits = useMemo(() => {
+    if (balanceCredits === null) return true;
+    return balanceCredits >= estimatedCredits;
+  }, [balanceCredits, estimatedCredits]);
+
+  // Conferma effettiva tramite chiamata RPC a Supabase
+  const handleConfirmBooking = async () => {
+    const currentUserId = userId;
+    if (!supabase || !confirmSlot || !selectedDogId || !currentUserId || submitting) return;
+    setSubmitting(true);
+    setBookingMessage(null);
+    try {
+      const args = {
+        p_station_id: confirmSlot.stationId,
+        p_dog_id: selectedDogId,
+        p_start_time: confirmSlot.start.toISOString(),
+        p_end_time: confirmSlot.end.toISOString()
+      } as Database["public"]["Functions"]["create_booking"]["Args"];
+
+      const { data, error } = await supabase.rpc("create_booking", args);
+      if (error) throw error;
+      
+      const first = data?.[0];
+      setSuccessSummary(
+        first
+          ? `Prenotazione confermata per ${selectedDog?.name} alle ${confirmSlot.time}. Costo: ${first.total_credits} crediti.`
+          : `Prenotazione confermata per ${selectedDog?.name} alle ${confirmSlot.time}.`
+      );
+      
+      // Carica il nuovo saldo crediti
+      const { data: walletData } = await supabase.from("wallets").select("balance_credits").eq("customer_id", currentUserId).maybeSingle();
+      if (walletData) {
+        setBalanceCredits(walletData.balance_credits);
+      }
+      
+      // Ricarica le disponibilità generali
+      void loadAvailability();
+      
+      // Redirect automatico dopo 2.5 secondi alla dashboard
+      setTimeout(() => {
+        setConfirmSlot(null);
+        router.push("/");
+      }, 2500);
+    } catch (err: any) {
+      const msg = String(err?.message ?? "Errore durante la prenotazione.");
+      setBookingMessage(msg.includes("Crediti insufficienti") ? "Crediti insufficienti. Ricarica il wallet prima di confermare." : msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!isConfigured) {
     return (
       <div className="space-y-6">
@@ -346,37 +562,92 @@ export default function PrenotaPage() {
 
       <header className="space-y-2 text-center">
         <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">
-          Calendario Disponibilità
+          Disponibilità H24
         </h2>
         <p className="text-sm leading-relaxed text-slate-400">
-          Visualizza gli orari di apertura H24 liberi o occupati ed avvia la prenotazione del tuo slot preferito.
+          Seleziona il cane, il servizio, la data ed infine l&apos;orario desiderato per bloccare il tuo slot.
         </p>
       </header>
 
+      {/* --- SELEZIONE CANE (Solo se loggato) --- */}
+      {isLogged && (
+        <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-400">1. Il tuo cane</p>
+              <p className="text-sm font-semibold text-slate-200">Per chi è la prenotazione?</p>
+            </div>
+            <Link href="/cani/nuovo">
+              <Button size="md" variant="ghost" className="h-8 rounded-xl bg-slate-950/40 border border-slate-800 hover:bg-slate-800/50 text-xs text-slate-300 gap-1 cursor-pointer">
+                <Plus className="h-3.5 w-3.5" /> Aggiungi
+              </Button>
+            </Link>
+          </div>
+
+          {dogs.length > 0 ? (
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {dogs.map((dog) => {
+                const active = dog.id === selectedDogId;
+                return (
+                  <button
+                    key={dog.id}
+                    type="button"
+                    onClick={() => setSelectedDogId(dog.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-left shrink-0 transition-all duration-200 cursor-pointer",
+                      active
+                        ? "bg-blue-500/10 border-blue-500/40 text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                        : "bg-slate-950/40 border-slate-800/60 text-slate-450 hover:bg-slate-900/40 hover:text-slate-200"
+                    )}
+                  >
+                    <PawPrint className={cn("h-4 w-4", active ? "text-blue-300 animate-pulse" : "text-slate-400")} />
+                    <div className="text-xs font-bold text-left">
+                      <p>{dog.name}</p>
+                      <p className="text-[9px] opacity-60 font-medium font-mono lowercase">
+                        {dog.size || "media"}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-3 text-center rounded-2xl bg-slate-950/40 border border-slate-800/80 text-xs text-slate-400">
+              Nessun cane registrato. <Link href="/cani/nuovo" className="text-blue-400 font-semibold underline">Aggiungine uno ora</Link> per iniziare.
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* --- INSERISCI LOGIN SE NON LOGGATO --- */}
+      {!isLogged && (
+        <Card className="backdrop-blur-xl bg-slate-900/20 border border-blue-500/10 rounded-3xl p-4 flex items-center justify-between gap-4">
+          <div className="space-y-0.5 max-w-[70%] text-left">
+            <p className="text-xs font-semibold text-blue-400">Non sei autenticato</p>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Puoi guardare gli orari liberi, ma per prenotare devi prima accedere al tuo account.
+            </p>
+          </div>
+          <Link href="/login?next=/prenota" className="shrink-0">
+            <Button size="md" variant="primary" className="rounded-xl bg-blue-600 hover:bg-blue-500 text-xs px-4">
+              Accedi
+            </Button>
+          </Link>
+        </Card>
+      )}
+
+      {/* --- SELEZIONE SERVIZI --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Servizi</p>
+          <div className="space-y-0.5 text-left">
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Servizi</p>
             <p className="text-sm font-semibold text-slate-200">Scegli i trattamenti</p>
           </div>
           <Button
             variant="ghost"
             size="md"
-            className="h-9 w-9 p-0 rounded-xl hover:bg-slate-800/50"
-            onClick={() => void (async () => {
-              if (!supabase) return;
-              setLoading(true);
-              try {
-                const { data: stationsData } = await supabase.from("stations").select("*").order("created_at", { ascending: true });
-                setStations(stationsData ?? []);
-                const args = { p_from: availabilityFrom.toISOString(), p_to: availabilityTo.toISOString() } as Database["public"]["Functions"]["get_booking_availability"]["Args"];
-                const { data: availData } = await supabase.rpc("get_booking_availability", args);
-                setAvailability(availData ?? []);
-                setAvailabilityLoaded(true);
-              } finally {
-                setLoading(false);
-              }
-            })()}
+            className="h-9 w-9 p-0 rounded-xl hover:bg-slate-800/50 cursor-pointer"
+            onClick={() => void loadAvailability()}
             disabled={loading}
             aria-label="Aggiorna disponibilità"
           >
@@ -407,7 +678,7 @@ export default function PrenotaPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-bold text-slate-100">{label}</p>
+                     <p className="text-sm font-bold text-slate-100">{label}</p>
                     {selected && (
                       <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
                         Attivo
@@ -421,7 +692,7 @@ export default function PrenotaPage() {
           })}
         </div>
 
-        <div className="rounded-2xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800/80 text-xs text-slate-400 space-y-1">
+        <div className="rounded-2xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800/80 text-xs text-slate-400 space-y-1 text-left">
           <p className="font-semibold text-slate-300">Tempo stimato per i servizi scelti:</p>
           <p className="text-slate-300">
             <span className="text-blue-400 font-bold">{durationMinutes} minuti</span> ({getServiceSummary(selectedServices)})
@@ -429,9 +700,10 @@ export default function PrenotaPage() {
         </div>
       </Card>
 
+      {/* --- SELEZIONE CALENDARIO --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Data Prenotazione</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">3. Data Prenotazione</p>
           <p className="text-xs text-slate-400 font-semibold">{selectedPreviewDay?.label ?? "—"}</p>
         </div>
 
@@ -518,9 +790,10 @@ export default function PrenotaPage() {
         </div>
       </Card>
 
+      {/* --- GRIGLIA DEGLI ORARI --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
-        <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Orari H24 del giorno</p>
+        <div className="space-y-1 text-left">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">4. Orari del giorno</p>
           <p className="text-sm font-semibold text-slate-200">Seleziona la fascia oraria di interesse:</p>
         </div>
 
@@ -557,23 +830,22 @@ export default function PrenotaPage() {
               {daySlotsInfo.map((slot) => {
                 if (slot.isAvailable) {
                   return (
-                    <Link
+                    <button
                       key={slot.time}
-                      href={(isLogged ? slot.bookingHref : slot.loginHref) as Route}
-                      className="group block"
+                      type="button"
+                      onClick={() => handleSlotClick(slot)}
+                      className="group block rounded-2xl p-3 text-center transition-all duration-200 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 ring-1 ring-inset ring-blue-500/20 hover:ring-blue-500/40 hover:from-blue-500/15 hover:to-cyan-500/10 cursor-pointer shadow-[0_4px_12px_rgba(59,130,246,0.05)] active:scale-98 text-left w-full"
                     >
-                      <div className="rounded-2xl p-3 text-center transition-all duration-200 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 ring-1 ring-inset ring-blue-500/20 hover:ring-blue-500/40 hover:from-blue-500/15 hover:to-cyan-500/10 cursor-pointer shadow-[0_4px_12px_rgba(59,130,246,0.05)] active:scale-98">
-                        <p className="text-sm font-bold text-slate-100 group-hover:text-blue-200 transition-colors">
-                          {slot.time}
-                        </p>
-                        <p className="text-[10px] font-medium text-emerald-400 mt-1">
-                          Libero
-                        </p>
-                        <div className="mt-2 text-[9px] font-bold text-slate-100 uppercase tracking-wider bg-blue-600/30 rounded-lg py-1 px-2 ring-1 ring-inset ring-blue-400/30">
-                          Prenota
-                        </div>
+                      <p className="text-sm font-bold text-slate-100 group-hover:text-blue-200 transition-colors text-center">
+                        {slot.time}
+                      </p>
+                      <p className="text-[10px] font-medium text-emerald-400 mt-1 text-center">
+                        Libero
+                      </p>
+                      <div className="mt-2 text-[9px] font-bold text-slate-100 uppercase tracking-wider bg-blue-600/30 rounded-lg py-1 px-2 ring-1 ring-inset ring-blue-400/30 text-center">
+                        Prenota
                       </div>
-                    </Link>
+                    </button>
                   );
                 } else {
                   return (
@@ -584,7 +856,7 @@ export default function PrenotaPage() {
                       <p className="text-sm font-bold text-slate-500 line-through">
                         {slot.time}
                       </p>
-                      <p className="text-[10px] font-semibold text-slate-550 mt-1">
+                      <p className="text-[10px] font-semibold text-slate-400 mt-1">
                         {slot.isPast ? "Passato" : "Occupato"}
                       </p>
                       <div className="mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider bg-slate-900 border border-slate-800 rounded-lg py-1 px-2">
@@ -597,17 +869,177 @@ export default function PrenotaPage() {
             </div>
           ) : (
             <div className="py-8 text-center text-slate-400 text-sm">
-              Caricamento slot orari in corso...
+              Caricamento slot orari...
             </div>
           )}
         </div>
       </Card>
 
+      {/* --- GESTIONE DEI MESSAGGI GENERALI DI ERRORE --- */}
       {availabilityHint && (
         <div className="rounded-2xl bg-red-950/20 p-3 text-xs text-red-200 border border-red-500/20">
           {availabilityHint}
         </div>
       )}
+
+      {/* --- MODALE DI CONFERMA APPLE-STYLE (Framer Motion) --- */}
+      <AnimatePresence>
+        {confirmSlot && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Overlay Sfondo con Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
+              onClick={() => !submitting && !successSummary && setConfirmSlot(null)}
+            />
+
+            {/* Box della Modale */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className="relative w-full max-w-sm rounded-3xl bg-slate-900/90 border border-slate-800/80 p-6 shadow-2xl backdrop-blur-2xl z-10 space-y-5"
+            >
+              {/* Tasto Chiudi */}
+              {!submitting && !successSummary && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmSlot(null)}
+                  className="absolute top-4 right-4 rounded-xl p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+
+              {/* STATO SUCCESSO */}
+              {successSummary ? (
+                <div className="text-center py-4 space-y-4">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30">
+                    <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-slate-100">Prenotazione Confermata!</h3>
+                    <p className="text-xs text-slate-450 leading-relaxed">
+                      {successSummary}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-slate-500 pt-2 animate-pulse">
+                    Reindirizzamento alla dashboard tra pochi secondi...
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* STATO CONFERMA STANDARD */}
+                  <div className="space-y-1 text-center">
+                    <h3 className="text-lg font-bold text-slate-100">Conferma la sessione</h3>
+                    <p className="text-xs text-slate-400">Verifica i dettagli prima di prenotare lo slot.</p>
+                  </div>
+
+                  {bookingMessage && (
+                    <div className="rounded-xl bg-red-950/20 p-3 text-xs text-red-200 border border-red-500/20 flex gap-2 text-left">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-red-300" />
+                      <span>{bookingMessage}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 bg-slate-950/40 p-4 rounded-2xl border border-slate-900 shadow-inner text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-900">
+                      <span className="text-slate-400">Cane</span>
+                      <span className="font-bold text-slate-200">{selectedDog?.name || "Nessuno"}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-900">
+                      <span className="text-slate-400">Servizi</span>
+                      <span className="font-bold text-slate-200 max-w-[65%] text-right truncate">
+                        {getServiceSummary(selectedServices)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-900">
+                      <span className="text-slate-400">Data</span>
+                      <span className="font-bold text-slate-200">
+                        {confirmSlot.start.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "long" })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-900">
+                      <span className="text-slate-400">Ora e Durata</span>
+                      <span className="font-bold text-slate-200">
+                        {confirmSlot.time} ({durationMinutes} min)
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-400">Postazione</span>
+                      <span className="font-bold text-slate-200">{confirmSlot.stationName}</span>
+                    </div>
+                  </div>
+
+                  {/* INFO CREDITI */}
+                  <div className="rounded-2xl p-4 bg-slate-950/20 border border-slate-800 flex items-center justify-between gap-4">
+                    <div className="space-y-0.5 text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Costo Stimato</p>
+                      <p className="text-lg font-extrabold text-blue-400">{estimatedCredits} crediti</p>
+                    </div>
+                    {balanceCredits !== null && (
+                      <div className="text-right space-y-0.5">
+                        <p className="text-[10px] text-slate-400">Saldo attuale: {balanceCredits} cr</p>
+                        {hasEnoughCredits ? (
+                          <p className="text-[10px] text-emerald-450 font-medium">Saldo rimanente: {(balanceCredits - estimatedCredits).toFixed(1)} cr</p>
+                        ) : (
+                          <p className="text-[10px] text-rose-455 font-bold flex items-center justify-end gap-0.5">
+                            <Lock className="h-3 w-3" /> Credito insufficiente
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* AZIONI */}
+                  <div className="space-y-2 pt-2">
+                    {hasEnoughCredits ? (
+                      <Button
+                        type="button"
+                        onClick={handleConfirmBooking}
+                        disabled={submitting || !selectedDogId}
+                        className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 cursor-pointer shadow-lg shadow-blue-900/20"
+                        variant="primary"
+                      >
+                        {submitting ? "Prenotazione in corso..." : "Conferma Prenotazione"}
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <Link href="/wallet" className="block w-full">
+                          <Button
+                            type="button"
+                            className="w-full rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 cursor-pointer shadow-lg shadow-amber-900/20"
+                            variant="primary"
+                          >
+                            Ricarica Wallet
+                          </Button>
+                        </Link>
+                        <p className="text-center text-[10px] text-slate-400 leading-relaxed">
+                          Ricarica il tuo conto crediti per completare questa prenotazione.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {!submitting && (
+                      <Button
+                        type="button"
+                        onClick={() => setConfirmSlot(null)}
+                        className="w-full rounded-2xl bg-slate-950/40 border border-slate-800 hover:bg-slate-800/30 text-slate-300 font-semibold py-2.5 cursor-pointer"
+                        variant="secondary"
+                      >
+                        Annulla
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
