@@ -183,7 +183,57 @@ export function WeekAvailabilityCalendar(props: {
         </div>
       </div>
 
-      <div className="overflow-auto">
+      <div className="md:hidden border-t border-slate-800">
+        <div className="px-4 py-3">
+          <div className="text-sm font-semibold text-slate-50">
+            {days[0]?.toLocaleDateString("it-IT", { weekday: "long", day: "2-digit", month: "long" }) ?? ""}
+          </div>
+          <div className="mt-1 text-xs text-slate-300">Tocca uno slot verde per selezionare l’orario.</div>
+        </div>
+
+        <div className="max-h-[420px] overflow-auto border-t border-slate-900">
+          {timeRows.map((row) => {
+            const focusDay = days[0];
+            const key = focusDay ? ymd(focusDay) : "";
+            const slots = key ? slotsByDayKey.get(key) ?? [] : [];
+            const cell = slots.find((s) => s.label === row.label) ?? null;
+            const isSelected = Boolean(cell && selected && selected.dayKey === cell.dayKey && selected.label === cell.label);
+            const isFree = Boolean(cell && cell.availableCount > 0);
+            const disabled = !isFree || !onSelect;
+
+            return (
+              <button
+                key={`m-${row.minuteOfDay}`}
+                type="button"
+                disabled={disabled}
+                className={
+                  "flex w-full items-center justify-between gap-3 border-b border-slate-900 px-4 py-3 text-left " +
+                  (isSelected
+                    ? "bg-blue-500/20"
+                    : isFree
+                      ? "bg-emerald-500/10 hover:bg-emerald-500/15"
+                      : "bg-slate-950/20")
+                }
+                onClick={() => {
+                  if (!cell || !onSelect) return;
+                  if (!cell.availableCount) return;
+                  onSelect(cell);
+                }}
+              >
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium text-slate-50">{row.label}</span>
+                  {row.showLabel ? <span className="text-xs text-slate-400">ora</span> : null}
+                </div>
+                <div className="text-xs text-slate-300">
+                  {isFree ? `${cell?.availableCount ?? 0} libere` : "Occupato"}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="hidden md:block overflow-auto">
         <div className="min-w-[860px]">
           <div
             className="grid sticky top-0 z-10 bg-slate-950/95 backdrop-blur"
@@ -278,4 +328,3 @@ export function WeekAvailabilityCalendar(props: {
     </div>
   );
 }
-
