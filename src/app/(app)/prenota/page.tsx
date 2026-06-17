@@ -99,7 +99,7 @@ export default function PrenotaPage() {
   const [dayPart, setDayPart] = useState("");
   const [monthPart, setMonthPart] = useState("");
   const [yearPart, setYearPart] = useState("");
-  const [showCalendarCard, setShowCalendarCard] = useState(false);
+  const [showCalendarCard, setShowCalendarCard] = useState(true);
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), 1));
   const wheelRef = useRef<HTMLDivElement | null>(null);
 
@@ -124,6 +124,15 @@ export default function PrenotaPage() {
     }
     void checkSession();
   }, [supabase]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("start") === "true") {
+        setWizardStarted(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function loadAvailability() {

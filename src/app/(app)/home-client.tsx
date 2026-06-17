@@ -185,7 +185,7 @@ export default function HomeClient() {
               Accedi o Registrati
             </Button>
           </Link>
-          <Link href="/prenota">
+          <Link href="/prenota?start=true">
             <Button className="w-full" variant="secondary" size="lg">
               <CalendarDays className="h-5 w-5 mr-2" />
               Vedi disponibilità

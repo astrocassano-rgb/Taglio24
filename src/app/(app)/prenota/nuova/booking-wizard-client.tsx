@@ -135,7 +135,7 @@ export default function BookingWizardClient() {
   const [dayPart, setDayPart] = useState("");
   const [monthPart, setMonthPart] = useState("");
   const [yearPart, setYearPart] = useState("");
-  const [showCalendarCard, setShowCalendarCard] = useState(false);
+  const [showCalendarCard, setShowCalendarCard] = useState(true);
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date(calendarStart.getFullYear(), calendarStart.getMonth(), 1));
   const [stations, setStations] = useState<Station[]>([]);
   const [availability, setAvailability] = useState<AvailabilityRow[]>([]);
