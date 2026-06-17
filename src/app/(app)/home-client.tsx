@@ -174,7 +174,7 @@ export default function HomeClient() {
     setAuthMessage(null);
     setAuthLoading(true);
     try {
-      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/login?next=${encodeURIComponent("/")}` : undefined;
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/auth/callback?next=${encodeURIComponent("/")}` : undefined;
       const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
       if (error) throw error;
     } catch (err: any) {

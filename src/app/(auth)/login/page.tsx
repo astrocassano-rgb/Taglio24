@@ -29,7 +29,7 @@ function isProfileComplete(profile: { first_name: string | null; last_name: stri
 
 function buildAuthCallbackUrl(nextPath: string) {
   if (typeof window === "undefined") return undefined;
-  return `${window.location.origin}/login?next=${encodeURIComponent(nextPath)}`;
+  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 }
 
 function buildPasswordResetUrl() {
@@ -84,6 +84,24 @@ function LoginContent() {
     },
     [nextPath, router, supabase]
   );
+
+  // Reindirizza l'utente se ha già una sessione attiva
+  useEffect(() => {
+    if (!supabase) return;
+    const code = searchParams?.get("code");
+    const shouldHandleCode = Boolean(code);
+    const shouldHandleHash = typeof window !== "undefined" && Boolean(window.location.hash);
+    if (shouldHandleCode || shouldHandleHash) return;
+
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const redirected = await maybeRequireProfileCompletion(data.session.user as any);
+        if (redirected) return;
+        router.replace(resolvePostLoginPath(nextPath, data.session.user as any) as Route);
+      }
+    })();
+  }, [supabase, searchParams, nextPath, maybeRequireProfileCompletion, router]);
 
   useEffect(() => {
     if (!supabase) return;
