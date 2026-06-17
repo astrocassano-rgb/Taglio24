@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CreditCard, CalendarDays, PawPrint, LogIn } from "lucide-react";
+import { CreditCard, CalendarDays, PawPrint, LogIn, Mail, Lock, UserPlus, Apple } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { createGoogleCalendarUrl } from "@/lib/booking-planner";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
 import { safeGetSession } from "@/lib/supabase/safe-session";
@@ -17,6 +19,7 @@ type Dog = Pick<Database["public"]["Tables"]["dogs"]["Row"], "id" | "name">;
 type Station = Pick<Database["public"]["Tables"]["stations"]["Row"], "id" | "name">;
 
 export default function HomeClient() {
+  const router = useRouter();
   const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
   const [isLogged, setIsLogged] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,19 +29,168 @@ export default function HomeClient() {
   const [dogNames, setDogNames] = useState<Record<string, string>>({});
   const [stationNames, setStationNames] = useState<Record<string, string>>({});
 
+  // Stati per il form di autenticazione integrato
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [canResend, setCanResend] = useState(false);
+
   useEffect(() => {
-    async function checkAuth() {
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-      const { data } = await safeGetSession(supabase);
-      setIsLogged(!!data.session);
-      setUserId(data.session?.user.id ?? null);
+    if (!supabase) {
       setLoading(false);
+      return;
     }
+    let mounted = true;
+    const checkAuth = async () => {
+      const { data } = await safeGetSession(supabase);
+      if (mounted) {
+        setIsLogged(!!data.session);
+        setUserId(data.session?.user.id ?? null);
+        setLoading(false);
+      }
+    };
     void checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setIsLogged(!!session);
+        setUserId(session?.user?.id ?? null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
+
+  const maybeRequireProfileCompletion = async (user: any) => {
+    if (!supabase) return false;
+    if (user?.app_metadata?.role === "admin") return false;
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("first_name,last_name,phone")
+      .eq("id", String(user?.id ?? ""))
+      .maybeSingle();
+
+    if (error) return false;
+    
+    const isProfileComplete = (prof: any) => {
+      const firstName = String(prof?.first_name ?? "").trim();
+      const lastName = String(prof?.last_name ?? "").trim();
+      const phone = String(prof?.phone ?? "").trim();
+      return Boolean(firstName && lastName && phone);
+    };
+
+    if (isProfileComplete(profile)) return false;
+
+    const target = `/profilo?complete=1&next=${encodeURIComponent("/")}`;
+    router.replace(target as Route);
+    router.refresh();
+    return true;
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return;
+    setAuthMessage(null);
+    setCanResend(false);
+    if (!email || !password) {
+      setAuthMessage("Inserisci email e password.");
+      return;
+    }
+    if (password.length < 6) {
+      setAuthMessage("La password deve avere almeno 6 caratteri.");
+      return;
+    }
+    setAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const redirected = await maybeRequireProfileCompletion(data.user as any);
+      if (redirected) return;
+      router.refresh();
+    } catch (err: any) {
+      setAuthMessage(toFriendlyMessage(err));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return;
+    setAuthMessage(null);
+    setCanResend(false);
+    if (!email || !password) {
+      setAuthMessage("Inserisci email e password.");
+      return;
+    }
+    if (password.length < 6) {
+      setAuthMessage("La password deve avere almeno 6 caratteri.");
+      return;
+    }
+    setAuthLoading(true);
+    try {
+      const emailRedirectTo = typeof window !== "undefined" ? `${window.location.origin}/login?next=${encodeURIComponent("/")}` : undefined;
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
+      if (error) throw error;
+      if (data.session) {
+        const redirected = await maybeRequireProfileCompletion(data.session.user as any);
+        if (redirected) return;
+        router.refresh();
+      } else {
+        setAuthMessage("Account creato! Conferma la registrazione tramite il link inviato per email.");
+        setCanResend(true);
+      }
+    } catch (err: any) {
+      setAuthMessage(toFriendlyMessage(err));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!supabase || !email) return;
+    setAuthMessage(null);
+    setAuthLoading(true);
+    try {
+      const emailRedirectTo = typeof window !== "undefined" ? `${window.location.origin}/login?next=${encodeURIComponent("/")}` : undefined;
+      const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo } });
+      if (error) throw error;
+      setAuthMessage("Email di conferma reinviata. Controlla la posta.");
+    } catch (err: any) {
+      setAuthMessage(toFriendlyMessage(err));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: "google" | "apple") => {
+    if (!supabase) return;
+    setAuthMessage(null);
+    setAuthLoading(true);
+    try {
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/login?next=${encodeURIComponent("/")}` : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+      if (error) throw error;
+    } catch (err: any) {
+      setAuthMessage(`Errore di accesso con ${provider === "google" ? "Google" : "Apple"}.`);
+      setAuthLoading(false);
+    }
+  };
+
+  const toFriendlyMessage = (err: any) => {
+    const msg = String(err?.message ?? "");
+    const lower = msg.toLowerCase();
+    if (lower.includes("invalid login credentials")) return "Credenziali non valide. Controlla email e password.";
+    if (lower.includes("email not confirmed")) return "Email non confermata. Conferma la registrazione tramite il link inviato via mail.";
+    if (lower.includes("user already registered")) return "Esiste già un account registrato con questa email. Prova ad accedere.";
+    return msg || "Si è verificato un errore.";
+  };
 
   useEffect(() => {
     async function loadDashboard() {
@@ -86,119 +238,179 @@ export default function HomeClient() {
   // --- VISTA OSPITE (LANDING PAGE) ---
   if (!isLogged) {
     return (
-      <div className="space-y-6 py-4">
-        <section className="text-center space-y-4">
-          <div className="mx-auto w-56 max-w-full">
+      <div className="space-y-6 py-4 max-w-md mx-auto">
+        <section className="text-center space-y-3">
+          <div className="mx-auto w-44 max-w-full">
             <Image
               src="/logo.png"
               alt="DogWash24 - Self Service Toilettatura"
-              width={560}
-              height={560}
+              width={440}
+              height={440}
               priority
               className="h-auto w-full"
             />
           </div>
-          <p className="text-xs font-medium tracking-wide text-slate-400">Toilettatura · Self-Service</p>
-          <h1 className="text-3xl font-bold tracking-tight">Prenota il lavaggio del tuo cane</h1>
-          <p className="mx-auto max-w-sm text-slate-300">
-            Una webapp per prenotare vasche e postazioni, gestire i profili dei tuoi cani e pagare con crediti in modo semplice e veloce.
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Self-Service H24</p>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">
+            DogWash24
+          </h1>
+          <p className="mx-auto max-w-xs text-sm text-slate-400 leading-relaxed">
+            La soluzione self-service per la cura e il lavaggio del tuo cane, accessibile a qualsiasi ora del giorno e della notte.
           </p>
         </section>
 
-        <section className="grid gap-3">
-          <Card>
-            <CardHeader className="space-y-1">
-              <p className="text-xs font-medium text-slate-300">Funzionalita</p>
-              <p className="text-lg font-semibold tracking-tight">Cosa puoi fare, passo dopo passo</p>
-              <p className="text-sm leading-relaxed text-slate-400">
-                Una sola area per capire subito sia cosa puoi gestire nell&apos;app sia come funziona il percorso di prenotazione.
-              </p>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="rounded-3xl bg-gradient-to-br from-blue-500/15 to-cyan-500/10 p-4 ring-1 ring-inset ring-blue-500/20">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-500/15 ring-1 ring-inset ring-blue-400/30">
-                    <CalendarDays className="h-6 w-6 text-blue-200" />
+        <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl overflow-hidden">
+          <CardHeader className="space-y-1 pb-3 border-b border-slate-800/40 bg-slate-950/20">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Area Riservata</p>
+            <p className="text-lg font-bold text-slate-100">Accedi o crea un account</p>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={authMode === "signin" ? "primary" : "secondary"}
+                className="w-full rounded-2xl h-11 transition-all duration-200 cursor-pointer"
+                onClick={() => {
+                  setAuthMode("signin");
+                  setAuthMessage(null);
+                  setCanResend(false);
+                }}
+                disabled={authLoading}
+              >
+                <LogIn className="h-4 w-4 mr-1.5" />
+                Accedi
+              </Button>
+              <Button
+                type="button"
+                variant={authMode === "signup" ? "primary" : "secondary"}
+                className="w-full rounded-2xl h-11 transition-all duration-200 cursor-pointer"
+                onClick={() => {
+                  setAuthMode("signup");
+                  setAuthMessage(null);
+                  setCanResend(false);
+                }}
+                disabled={authLoading}
+              >
+                <UserPlus className="h-4 w-4 mr-1.5" />
+                Registrati
+              </Button>
+            </div>
+
+            {authMessage && (
+              <div className="rounded-2xl bg-slate-950/50 p-3 text-xs text-slate-300 ring-1 ring-inset ring-slate-800/80 leading-relaxed">
+                {authMessage}
+              </div>
+            )}
+
+            <form
+              className="space-y-3.5"
+              onSubmit={authMode === "signup" ? handleSignUp : handleSignIn}
+            >
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1" htmlFor="email">
+                  Indirizzo Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
+                    <Mail className="h-4 w-4" />
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-50">1. Crea l&apos;account e accedi</p>
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-blue-200">Inizio rapido</p>
-                    </div>
-                    <p className="text-sm leading-relaxed text-slate-300">
-                      Entri nella tua area personale e sblocchi la prenotazione reale, lo storico e la gestione completa del servizio.
-                    </p>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-blue-100">
-                      Accesso, dashboard e prenotazione attiva
-                    </p>
-                  </div>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="nome@email.it"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={authLoading}
+                    className="bg-slate-950/40 border-slate-800/80 rounded-2xl h-12 pl-10 focus-visible:ring-blue-500/50 text-slate-100"
+                  />
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-gradient-to-br from-emerald-500/15 to-lime-500/10 p-4 ring-1 ring-inset ring-emerald-500/20">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 ring-1 ring-inset ring-emerald-400/30">
-                    <PawPrint className="h-6 w-6 text-emerald-200" />
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1" htmlFor="password">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-500">
+                    <Lock className="h-4 w-4" />
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-50">2. Inserisci i dati del tuo cane</p>
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">Scheda completa</p>
-                    </div>
-                    <p className="text-sm leading-relaxed text-slate-300">
-                      Salvi nome, taglia, peso e note utili per avere profili ordinati, pronti da usare per ogni nuova prenotazione.
-                    </p>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">
-                      Profili cane, note e storico utilizzo
-                    </p>
-                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={authLoading}
+                    className="bg-slate-950/40 border-slate-800/80 rounded-2xl h-12 pl-10 focus-visible:ring-blue-500/50 text-slate-100"
+                  />
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 p-4 ring-1 ring-inset ring-amber-500/20">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-inset ring-amber-400/30">
-                    <CreditCard className="h-6 w-6 text-amber-200" />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-50">3. Ricarica, scegli slot e conferma</p>
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">Prenotazione</p>
-                    </div>
-                    <p className="text-sm leading-relaxed text-slate-300">
-                      Controlli il wallet, verifichi disponibilita di giorni e orari e prenoti la postazione migliore per il tuo cane.
-                    </p>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">
-                      Crediti, disponibilita e conferma slot
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+              <Button
+                className="w-full rounded-2xl h-12 bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/10 cursor-pointer mt-1"
+                variant="primary"
+                type="submit"
+                disabled={authLoading}
+              >
+                {authMode === "signup" ? (
+                  <>
+                    <UserPlus className="h-5 w-5 mr-1.5" />
+                    Crea account
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-5 w-5 mr-1.5" />
+                    Accedi ora
+                  </>
+                )}
+              </Button>
+            </form>
 
-        <div className="grid gap-3 pt-2">
-          <Link href="/login">
-            <Button className="w-full" variant="primary" size="lg">
-              <LogIn className="h-5 w-5 mr-2" />
-              Accedi o Registrati
-            </Button>
+            <div className="flex flex-col gap-2 pt-2 border-t border-slate-800/40">
+              {canResend && (
+                <Button
+                  className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
+                  variant="secondary"
+                  type="button"
+                  onClick={handleResend}
+                  disabled={authLoading}
+                >
+                  <Mail className="h-4 w-4 mr-1.5" />
+                  Reinvia email di conferma
+                </Button>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
+                  variant="secondary"
+                  type="button"
+                  onClick={() => handleOAuth("google")}
+                  disabled={authLoading}
+                >
+                  <span className="text-sm font-bold mr-1.5">G</span>
+                  Google
+                </Button>
+                <Button
+                  className="w-full rounded-2xl h-10 text-xs border border-slate-800 bg-slate-950/30 hover:bg-slate-900/40 cursor-pointer"
+                  variant="secondary"
+                  type="button"
+                  onClick={() => handleOAuth("apple")}
+                  disabled={authLoading}
+                >
+                  <Apple className="h-4 w-4 mr-1.5" />
+                  Apple
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="pt-2 text-center">
+          <Link href="/piattaforma" className="text-xs font-semibold text-slate-400 underline-offset-4 hover:underline hover:text-slate-200 transition-colors">
+            Sei un gestore? Scopri la piattaforma DogWash24
           </Link>
-          <Link href="/prenota?start=true">
-            <Button className="w-full" variant="secondary" size="lg">
-              <CalendarDays className="h-5 w-5 mr-2" />
-              Vedi disponibilità
-            </Button>
-          </Link>
-          <p className="text-center text-xs text-slate-400">
-            La prenotazione viene confermata solo dopo l&apos;accesso.
-          </p>
-          <div className="pt-2 text-center">
-            <Link href="/piattaforma" className="text-xs font-medium text-slate-300 underline-offset-4 hover:underline">
-              Sei un gestore o un distributore? Scopri la piattaforma DogWash24
-            </Link>
-          </div>
         </div>
       </div>
     );

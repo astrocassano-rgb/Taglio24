@@ -1,27 +1,70 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
-import { Home, CalendarDays, Wallet, PawPrint, User } from "lucide-react";
+import { Home, CalendarDays, Wallet, PawPrint, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/cn";
-
-const items: { href: Route; label: string; Icon: typeof Home }[] = [
-  { href: "/", label: "Home", Icon: Home },
-  { href: "/prenota", label: "Prenota", Icon: CalendarDays },
-  { href: "/wallet", label: "Wallet", Icon: Wallet },
-  { href: "/cani", label: "I miei cani", Icon: PawPrint },
-  { href: "/profilo", label: "Profilo", Icon: User }
-] as const;
+import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
+import { safeGetSession } from "@/lib/supabase/safe-session";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const supabase = useMemo(() => tryCreateSupabaseBrowserClient(), []);
+  const [isLogged, setIsLogged] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!supabase) {
+      setIsLogged(false);
+      return;
+    }
+    let mounted = true;
+    const checkSession = async () => {
+      const { data } = await safeGetSession(supabase);
+      if (mounted) setIsLogged(Boolean(data.session));
+    };
+    void checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setIsLogged(Boolean(session));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const items = useMemo(() => {
+    if (isLogged) {
+      return [
+        { href: "/" as Route, label: "Home", Icon: Home },
+        { href: "/prenota" as Route, label: "Prenota", Icon: CalendarDays },
+        { href: "/wallet" as Route, label: "Wallet", Icon: Wallet },
+        { href: "/cani" as Route, label: "I miei cani", Icon: PawPrint },
+        { href: "/profilo" as Route, label: "Profilo", Icon: User }
+      ];
+    } else {
+      return [
+        { href: "/" as Route, label: "Home", Icon: Home },
+        { href: "/prenota" as Route, label: "Disponibilità", Icon: CalendarDays },
+        { href: "/login" as Route, label: "Accedi", Icon: LogIn }
+      ];
+    }
+  }, [isLogged]);
+
+  // Se lo stato dell'autenticazione è ancora in caricamento, evitiamo flash del layout
+  if (isLogged === null) return null;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800 bg-slate-950/90 backdrop-blur">
-      <div className="mx-auto grid max-w-md grid-cols-5 px-2 pb-[calc(env(safe-area-inset-bottom))] pt-2">
+      <div className={cn(
+        "mx-auto grid max-w-md px-2 pb-[calc(env(safe-area-inset-bottom))] pt-2",
+        isLogged ? "grid-cols-5" : "grid-cols-3"
+      )}>
         {items.map(({ href, label, Icon }) => {
-          const isActive = pathname === href;
+          const isActive = pathname === href || (href === "/login" && pathname?.startsWith("/login"));
           return (
             <Link
               key={href}
