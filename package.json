@@ -13,7 +13,8 @@
     "supabase:apply-admin-wallet": "node scripts/apply-supabase-sql.mjs supabase/migrations/0005_admin_and_wallet.sql",
     "admin:set": "node scripts/set-admin.mjs",
     "admin:invite": "node scripts/invite-admin.mjs",
-    "admin:recovery-link": "node scripts/admin-recovery-link.mjs"
+    "admin:recovery-link": "node scripts/admin-recovery-link.mjs",
+    "icons:generate": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
@@ -40,6 +41,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9.34.0",
     "eslint-config-next": "^15.4.0",
+    "jimp": "^1.6.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2"
