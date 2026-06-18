@@ -187,28 +187,18 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
         </CardContent>
       </Card>
 
-      {rows.length ? (
-        <div className="h-[calc(100vh-230px)] min-h-[600px] mt-6">
-          <SmartAgenda
-            bookings={rows}
-            stations={stations ?? []}
-            dogNames={dogNameById}
-            customerNames={customerById}
-            allDogs={allDogs ?? []}
-            allProfiles={allProfiles ?? []}
-            maxConcurrentAssisted={settings?.max_concurrent_assisted ?? 1}
-            selectedDateStr={dateRaw}
-          />
-        </div>
-      ) : (
-        <Card>
-          <CardHeader className="space-y-1">
-            <p className="text-xs font-medium text-slate-300">Vuoto</p>
-            <p className="text-lg font-semibold tracking-tight">Nessuna prenotazione</p>
-          </CardHeader>
-          <CardContent className="text-sm text-slate-300">Quando i clienti prenotano, qui compariranno le ultime 50 prenotazioni.</CardContent>
-        </Card>
-      )}
+      <div className="h-[calc(100vh-230px)] min-h-[600px] mt-6">
+        <SmartAgenda
+          bookings={rows}
+          stations={stations ?? []}
+          dogNames={dogNameById}
+          customerNames={customerById}
+          allDogs={allDogs ?? []}
+          allProfiles={allProfiles ?? []}
+          maxConcurrentAssisted={settings?.max_concurrent_assisted ?? 1}
+          selectedDateStr={dateRaw}
+        />
+      </div>
     </div>
   );
 }

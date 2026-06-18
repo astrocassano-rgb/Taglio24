@@ -38,7 +38,7 @@ type Profile = {
 type Dog = {
   id: string;
   name: string;
-  customer_id: string;
+  owner_id: string;
 };
 
 interface SmartAgendaProps {
@@ -78,6 +78,8 @@ export function SmartAgenda({
 
   const [selectedSlot, setSelectedSlot] = useState<{ stationId: string; time: Date } | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [selectedDogId, setSelectedDogId] = useState<string>("");
+  const [selectedBookingId, setSelectedBookingId] = useState<string>("");
   const [isPending, setIsPending] = useState(false);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
@@ -100,14 +102,24 @@ export function SmartAgenda({
     if (selectedSlot) {
       setModalDate(format(selectedSlot.time, "yyyy-MM-dd"));
       setModalTime(format(selectedSlot.time, "HH:mm"));
-      setModalDuration(30);
       setModalStationId(selectedSlot.stationId || stations[0]?.id || "");
     }
   }, [selectedSlot, stations]);
 
   const customerDogs = useMemo(() => {
-    return allDogs.filter(d => d.customer_id === selectedCustomerId);
+    return allDogs.filter(d => d.owner_id === selectedCustomerId);
   }, [allDogs, selectedCustomerId]);
+
+  const handleCustomerChange = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    const dogs = allDogs.filter(d => d.owner_id === customerId);
+    setSelectedDogId(dogs[0]?.id || "");
+  };
+
+  const selectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    return bookings.find(b => b.id === selectedBookingId) || null;
+  }, [bookings, selectedBookingId]);
 
   async function handleCreate(formData: FormData) {
     try {
@@ -122,6 +134,35 @@ export function SmartAgenda({
 
       await createAdminBooking(formData);
       setSelectedSlot(null);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setIsPending(false);
+    }
+  }
+
+  async function handleUpdateStatus(newStatus: string) {
+    if (!selectedBookingId) return;
+    if (!confirm(`Sei sicuro di voler cambiare lo stato di questa prenotazione a ${newStatus === 'CANCELLED' ? 'ANNULLATA' : newStatus}?`)) return;
+    
+    try {
+      setIsPending(true);
+      const res = await fetch("/api/admin/bookings/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          booking_id: selectedBookingId,
+          status: newStatus,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Errore durante l'aggiornamento.");
+      }
+      setSelectedSlot(null);
+      router.refresh();
     } catch (e: any) {
       alert(e.message);
     } finally {
@@ -282,14 +323,22 @@ export function SmartAgenda({
   }, [startHour, endHour]);
 
   // Current time line calculation
-  const showCurrentTimeLine = isSameDay(selectedDate, currentTime);
+  const showTimeBubble = useMemo(() => {
+    if (viewMode === "giorno") {
+      return isSameDay(selectedDate, currentTime);
+    }
+    if (viewMode === "settimana") {
+      return weekDays.some(wd => isSameDay(wd, currentTime));
+    }
+    return false;
+  }, [viewMode, selectedDate, weekDays, currentTime]);
+
   const currentTimePercent = useMemo(() => {
-    if (!showCurrentTimeLine) return 0;
     const currentMins = currentTime.getHours() * 60 + currentTime.getMinutes();
     const startMins = startHour * 60;
     const diff = currentMins - startMins;
     return (diff / totalMinutes) * 100;
-  }, [currentTime, showCurrentTimeLine, startHour, totalMinutes]);
+  }, [currentTime, startHour, totalMinutes]);
 
   // Date selection helper bounds
   const months = [
@@ -441,7 +490,10 @@ export function SmartAgenda({
       <div className="flex-1 overflow-auto relative custom-scrollbar bg-slate-950">
                 {/* ────────────────── VIEW MODE: GIORNO / SETTIMANA ────────────────── */}
         {viewMode !== "mese" && (
-          <div className="min-w-[800px] flex relative select-none h-full w-full">
+          <div className={cn(
+            "flex relative select-none h-full w-full",
+            viewMode === "giorno" ? "min-w-[800px]" : "min-w-0"
+          )}>
             {/* Time Axis Column */}
             <div className="w-16 flex-shrink-0 border-r border-slate-800 bg-slate-950 sticky left-0 z-20 shadow-2xl flex flex-col h-full">
               <div className="h-12 border-b border-slate-800/80 bg-slate-950 sticky top-0 z-30 shrink-0" />
@@ -453,6 +505,17 @@ export function SmartAgenda({
                     </span>
                   </div>
                 ))}
+                {showTimeBubble && currentTimePercent > 0 && currentTimePercent < 100 && (
+                  <div 
+                    className="absolute right-1.5 z-30 pointer-events-none -translate-y-1/2 flex items-center gap-1"
+                    style={{ top: `${currentTimePercent}%` }}
+                  >
+                    <span className="text-[9px] font-black text-rose-500 bg-rose-950 border border-rose-500/30 px-1.5 py-0.5 rounded-lg shadow-lg">
+                      {format(currentTime, 'HH:mm')}
+                    </span>
+                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0 animate-ping" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -478,7 +541,12 @@ export function SmartAgenda({
                             isHourLine ? "border-b border-slate-800/40" : "border-b border-dashed border-slate-800/25",
                             "hover:bg-slate-900/30"
                           )}
-                          onClick={() => setSelectedSlot({ stationId: station.id, time })}
+                          onClick={() => {
+                            setSelectedSlot({ stationId: station.id, time });
+                            setSelectedCustomerId("");
+                            setSelectedDogId("");
+                            setSelectedBookingId("");
+                          }}
                         >
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity bg-cyan-500/[0.03]">
                             <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 text-cyan-400 text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
@@ -490,6 +558,14 @@ export function SmartAgenda({
                       );
                     })}
                   </div>
+
+                  {/* CURRENT TIME LINE WITHIN COLUMN */}
+                  {isSameDay(selectedDate, currentTime) && currentTimePercent > 0 && currentTimePercent < 100 && (
+                    <div 
+                      className="absolute left-0 right-0 h-[2px] bg-rose-500/80 z-20 pointer-events-none -translate-y-1/2"
+                      style={{ top: `${currentTimePercent}%` }}
+                    />
+                  )}
 
                   {/* Absolute booking cards */}
                   {dailyBookings.filter(b => b.station_id === station.id).map(booking => {
@@ -536,6 +612,8 @@ export function SmartAgenda({
                           e.stopPropagation();
                           setSelectedSlot({ stationId: booking.station_id, time: start });
                           setSelectedCustomerId(booking.customer_id);
+                          setSelectedDogId(booking.dog_id);
+                          setSelectedBookingId(booking.id);
                           setModalDuration(differenceInMinutes(end, start));
                         }}
                       >
@@ -553,9 +631,9 @@ export function SmartAgenda({
                           </div>
                           
                           {/* Dog name */}
-                          <div className="text-[10px] font-black text-slate-100 truncate my-auto min-w-0 leading-tight">
-                            {dogNames[booking.dog_id] || "Sconosciuto"}
-                          </div>
+                           <div className="text-[10px] font-black text-slate-100 truncate my-auto min-w-0 leading-tight">
+                             {dogNames[booking.dog_id] || allDogs.find(d => d.id === booking.dog_id)?.name || "Sconosciuto"}
+                           </div>
 
                           {/* Customer details (only for >30m) */}
                           {durationMins > 30 && (
@@ -579,7 +657,7 @@ export function SmartAgenda({
               const dayBookings = weeklyBookings.filter(b => isSameDay(parseISO(b.start_time), day));
 
               return (
-                <div key={idx} className={cn("flex-1 border-r border-slate-800/60 relative min-w-[130px] group/col flex flex-col h-full")}>
+                 <div key={idx} className={cn("flex-1 border-r border-slate-800/60 relative min-w-0 group/col flex flex-col h-full")}>
                   <div className={cn(
                     "h-12 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md sticky top-0 z-10 flex flex-col justify-center items-center py-2 text-center shadow-sm shrink-0",
                     isActiveDay ? "bg-slate-900/40" : ""
@@ -616,7 +694,12 @@ export function SmartAgenda({
                               isHourLine ? "border-b border-slate-800/40" : "border-b border-dashed border-slate-800/25",
                               "hover:bg-slate-900/30"
                             )}
-                            onClick={() => setSelectedSlot({ stationId: "", time })}
+                            onClick={() => {
+                              setSelectedSlot({ stationId: "", time });
+                              setSelectedCustomerId("");
+                              setSelectedDogId("");
+                              setSelectedBookingId("");
+                            }}
                           >
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity bg-cyan-500/[0.03]">
                               <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 text-cyan-400 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
@@ -628,6 +711,14 @@ export function SmartAgenda({
                         );
                       })}
                     </div>
+
+                    {/* CURRENT TIME LINE WITHIN COLUMN (ONLY TODAY) */}
+                    {isToday && isSameDay(day, currentTime) && currentTimePercent > 0 && currentTimePercent < 100 && (
+                      <div 
+                        className="absolute left-0 right-0 h-[2px] bg-rose-500/80 z-20 pointer-events-none -translate-y-1/2"
+                        style={{ top: `${currentTimePercent}%` }}
+                      />
+                    )}
 
                     {/* Booking cards in week day column */}
                     {dayBookings.map(booking => {
@@ -655,7 +746,7 @@ export function SmartAgenda({
                         Icon = Sparkles;
                         label = "Assistito";
                       } else if (booking.service_type === "FULL_GROOMING") {
-                        accentColor = "from-fuchsia-500 to-pink-605";
+                        accentColor = "from-fuchsia-500 to-pink-600";
                         bgColors = "bg-fuchsia-500/[0.08] hover:bg-fuchsia-500/[0.12] border-fuchsia-500/30 shadow-fuchsia-500/[0.02]";
                         textPrimary = "text-fuchsia-200";
                         Icon = Scissors;
@@ -676,6 +767,8 @@ export function SmartAgenda({
                             e.stopPropagation();
                             setSelectedSlot({ stationId: booking.station_id, time: start });
                             setSelectedCustomerId(booking.customer_id);
+                            setSelectedDogId(booking.dog_id);
+                            setSelectedBookingId(booking.id);
                             setModalDuration(durationMins);
                           }}
                         >
@@ -689,7 +782,7 @@ export function SmartAgenda({
 
                             {/* Dog name */}
                             <div className="text-[9.5px] font-black text-slate-100 truncate my-auto min-w-0 leading-tight">
-                              {dogNames[booking.dog_id] || "Sconosciuto"}
+                              {dogNames[booking.dog_id] || allDogs.find(d => d.id === booking.dog_id)?.name || "Cane"}
                             </div>
 
                             {/* Customer details (only for >30m) */}
@@ -708,23 +801,6 @@ export function SmartAgenda({
               );
             })}
 
-            {/* CURRENT TIME INDICATOR LINE */}
-            {showCurrentTimeLine && currentTimePercent > 0 && currentTimePercent < 100 && (
-              <div 
-                className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
-                style={{ top: `calc(${currentTimePercent}% + 48px)`, transform: 'translateY(-50%)' }}
-              >
-                <div className="w-16 shrink-0 flex justify-end pr-1.5">
-                  <span className="text-[9px] font-black text-rose-500 bg-rose-950/60 border border-rose-500/30 px-1 py-0.5 rounded shadow">
-                    {format(currentTime, 'HH:mm')}
-                  </span>
-                </div>
-                <div className="flex-1 h-[2px] bg-rose-500 relative">
-                  <span className="absolute -left-1 -top-[4px] w-[10px] h-[10px] bg-rose-500 rounded-full shadow-lg ring-4 ring-rose-500/20 animate-ping" />
-                  <span className="absolute -left-1 -top-[4px] w-[10px] h-[10px] bg-rose-500 rounded-full shadow-md" />
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -755,6 +831,9 @@ export function SmartAgenda({
                       const time = new Date(day);
                       time.setHours(9, 0, 0, 0); // Default to 9:00 AM on slot click
                       setSelectedSlot({ stationId: "", time });
+                      setSelectedCustomerId("");
+                      setSelectedDogId("");
+                      setSelectedBookingId("");
                     }}
                     className={cn(
                       "bg-slate-950 p-2 flex flex-col justify-between hover:bg-slate-900/30 transition-colors cursor-pointer border border-slate-900/40 relative group min-h-[90px]",
@@ -798,6 +877,8 @@ export function SmartAgenda({
                               e.stopPropagation();
                               setSelectedSlot({ stationId: booking.station_id, time: start });
                               setSelectedCustomerId(booking.customer_id);
+                              setSelectedDogId(booking.dog_id);
+                              setSelectedBookingId(booking.id);
                               setModalDuration(differenceInMinutes(parseISO(booking.end_time), start));
                             }}
                             className={cn(
@@ -805,7 +886,7 @@ export function SmartAgenda({
                               labelColor
                             )}
                           >
-                            {format(start, 'HH:mm')} {dogNames[booking.dog_id] || "Cane"}
+                            {format(start, 'HH:mm')} {dogNames[booking.dog_id] || allDogs.find(d => d.id === booking.dog_id)?.name || "Cane"}
                           </div>
                         );
                       })}
@@ -829,116 +910,232 @@ export function SmartAgenda({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-              <h3 className="font-semibold text-slate-200">Nuova Prenotazione (Bypass Admin)</h3>
+              <h3 className="font-semibold text-slate-200">
+                {selectedBooking ? "Dettagli Prenotazione" : "Nuova Prenotazione (Bypass Admin)"}
+              </h3>
               <button onClick={() => setSelectedSlot(null)} className="p-1.5 hover:bg-slate-800 rounded-xl text-slate-400 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form action={handleCreate} className="p-5 space-y-4">
-              
-              {/* STATION SELECTION DROPDOWN */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-300">Postazione</label>
-                <select
-                  value={modalStationId}
-                  onChange={(e) => setModalStationId(e.target.value)}
-                  className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-                >
-                  {stations.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.type.replace('_', ' ')})</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* DATE & TIME ADJUSTMENT FIELDS */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Data</label>
-                  <input
-                    type="date"
-                    required
-                    value={modalDate}
-                    onChange={(e) => setModalDate(e.target.value)}
-                    className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-                  />
+            {selectedBooking ? (
+              /* DETAIL / ACTION MODE */
+              <div className="p-5 space-y-4">
+                <div className="rounded-xl bg-slate-950/60 p-4 border border-slate-800/60 space-y-3">
+                  <div className="flex justify-between items-center border-b border-slate-800/40 pb-2">
+                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Stato</span>
+                    <span className={cn(
+                      "text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border",
+                      selectedBooking.status === "CONFIRMED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" :
+                      selectedBooking.status === "PENDING" ? "bg-amber-500/10 border-amber-500/30 text-amber-300" :
+                      selectedBooking.status === "COMPLETED" ? "bg-blue-500/10 border-blue-500/30 text-blue-300" :
+                      "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                    )}>
+                      {selectedBooking.status === "CONFIRMED" ? "Confermata" :
+                       selectedBooking.status === "PENDING" ? "In attesa" :
+                       selectedBooking.status === "COMPLETED" ? "Completata" : "Annullata"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">Postazione</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {stations.find(s => s.id === selectedBooking.station_id)?.name || "Postazione"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">Data e Ora</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {format(parseISO(selectedBooking.start_time), 'dd MMMM yyyy', { locale: it })} · {format(parseISO(selectedBooking.start_time), 'HH:mm')} - {format(parseISO(selectedBooking.end_time), 'HH:mm')}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">Servizio</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {selectedBooking.service_type === "SELF_SERVICE" ? "Self Service" :
+                       selectedBooking.service_type === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Toelettatura Completa"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">Cliente</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {customerNames[selectedBooking.customer_id] || 
+                       (allProfiles.find(p => p.id === selectedBooking.customer_id) 
+                         ? [allProfiles.find(p => p.id === selectedBooking.customer_id)?.first_name, allProfiles.find(p => p.id === selectedBooking.customer_id)?.last_name].filter(Boolean).join(" ") || allProfiles.find(p => p.id === selectedBooking.customer_id)?.email
+                         : "Cliente")}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block">Cane</span>
+                    <span className="text-sm font-bold text-slate-200">
+                      {dogNames[selectedBooking.dog_id] || allDogs.find(d => d.id === selectedBooking.dog_id)?.name || "Cane"}
+                    </span>
+                  </div>
                 </div>
+
+                <div className="space-y-2 pt-2">
+                  {/* Cancel / Confirm / Complete buttons based on status */}
+                  {selectedBooking.status === "PENDING" && (
+                    <Button 
+                      type="button" 
+                      onClick={() => handleUpdateStatus("CONFIRMED")}
+                      disabled={isPending}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-2.5 font-bold transition-all text-xs"
+                    >
+                      Conferma Prenotazione
+                    </Button>
+                  )}
+                  
+                  {(selectedBooking.status === "PENDING" || selectedBooking.status === "CONFIRMED") && (
+                    <>
+                      <Button 
+                        type="button" 
+                        onClick={() => handleUpdateStatus("COMPLETED")}
+                        disabled={isPending}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-2.5 font-bold transition-all text-xs"
+                      >
+                        Segna come Completata
+                      </Button>
+                      <Button 
+                        type="button" 
+                        onClick={() => handleUpdateStatus("CANCELLED")}
+                        disabled={isPending}
+                        className="w-full bg-rose-600 hover:bg-rose-500 text-white rounded-xl py-2.5 font-bold transition-all text-xs"
+                      >
+                        Annulla Prenotazione
+                      </Button>
+                    </>
+                  )}
+
+                  {selectedBooking.status === "CANCELLED" && (
+                    <p className="text-center text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 py-2.5 rounded-xl font-bold">
+                      Questa prenotazione è stata annullata.
+                    </p>
+                  )}
+
+                  {selectedBooking.status === "COMPLETED" && (
+                    <p className="text-center text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 py-2.5 rounded-xl font-bold">
+                      Questa prenotazione è stata completata con successo.
+                    </p>
+                  )}
+
+                  <p className="text-[10px] text-center text-slate-500 leading-relaxed pt-2">
+                    Per modificare l&apos;orario, il giorno o la postazione di questa prenotazione, annulla la prenotazione corrente e creane una nuova.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* CREATE MODE */
+              <form action={handleCreate} className="p-5 space-y-4">
+                
+                {/* STATION SELECTION DROPDOWN */}
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-300">Ora Inizio</label>
+                  <label className="text-sm font-semibold text-slate-300">Postazione</label>
                   <select
-                    value={modalTime}
-                    onChange={(e) => setModalTime(e.target.value)}
+                    value={modalStationId}
+                    onChange={(e) => setModalStationId(e.target.value)}
                     className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
                   >
-                    {modalTimeOptions.map(t => (
-                      <option key={t} value={t}>{t}</option>
+                    {stations.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.type.replace('_', ' ')})</option>
                     ))}
                   </select>
                 </div>
-              </div>
 
-              {/* DURATION FIELD */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-300">Durata Servizio</label>
-                <select
-                  value={modalDuration}
-                  onChange={(e) => setModalDuration(Number(e.target.value))}
-                  className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-                >
-                  <option value={30}>30 minuti</option>
-                  <option value={45}>45 minuti</option>
-                  <option value={60}>1 ora (60 min)</option>
-                  <option value={90}>1 ora e 30 min (90 min)</option>
-                  <option value={120}>2 ore (120 min)</option>
-                  <option value={150}>2 ore e 30 min (150 min)</option>
-                  <option value={180}>3 ore (180 min)</option>
-                </select>
-              </div>
+                {/* DATE & TIME ADJUSTMENT FIELDS */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-300">Data</label>
+                    <input
+                      type="date"
+                      required
+                      value={modalDate}
+                      onChange={(e) => setModalDate(e.target.value)}
+                      className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-slate-300">Ora Inizio</label>
+                    <select
+                      value={modalTime}
+                      onChange={(e) => setModalTime(e.target.value)}
+                      className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                    >
+                      {modalTimeOptions.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-200">Seleziona Cliente</label>
-                <select 
-                  name="customer_id" 
-                  required 
-                  className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-                  value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                >
-                  <option value="">Cerca o seleziona...</option>
-                  {allProfiles.map(p => {
-                    const fullName = [p.first_name, p.last_name].filter(Boolean).join(" ");
-                    return <option key={p.id} value={p.id}>{fullName || p.email}</option>;
-                  })}
-                </select>
-              </div>
-
-              {selectedCustomerId && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <label className="text-sm font-semibold text-slate-200">Scegli Cane</label>
-                  <select name="dog_id" required className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
-                    {customerDogs.length === 0 && <option value="">Nessun cane registrato</option>}
-                    {customerDogs.map(d => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
+                {/* DURATION FIELD */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-300">Durata Servizio</label>
+                  <select
+                    value={modalDuration}
+                    onChange={(e) => setModalDuration(Number(e.target.value))}
+                    className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                  >
+                    <option value={30}>30 minuti</option>
+                    <option value={45}>45 minuti</option>
+                    <option value={60}>1 ora (60 min)</option>
+                    <option value={90}>1 ora e 30 min (90 min)</option>
+                    <option value={120}>2 ore (120 min)</option>
+                    <option value={150}>2 ore e 30 min (150 min)</option>
+                    <option value={180}>3 ore (180 min)</option>
                   </select>
                 </div>
-              )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-200">Tipologia di Servizio</label>
-                <select name="service_type" required className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
-                  <option value="SELF_SERVICE">Self Service (Nessuna assistenza)</option>
-                  <option value="ASSISTED_WASH">Lavaggio Assistito</option>
-                  <option value="FULL_GROOMING">Toelettatura Completa</option>
-                </select>
-              </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-200">Seleziona Cliente</label>
+                  <select 
+                    name="customer_id" 
+                    required 
+                    className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                    value={selectedCustomerId}
+                    onChange={(e) => handleCustomerChange(e.target.value)}
+                  >
+                    <option value="">Cerca o seleziona...</option>
+                    {allProfiles.map(p => {
+                      const fullName = [p.first_name, p.last_name].filter(Boolean).join(" ");
+                      return <option key={p.id} value={p.id}>{fullName || p.email}</option>;
+                    })}
+                  </select>
+                </div>
 
-              <div className="pt-2">
-                <Button type="submit" disabled={isPending || !selectedCustomerId || customerDogs.length === 0} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl py-3 font-semibold transition-all">
-                  {isPending ? "Salvataggio..." : "Conferma ed Inserisci"}
-                </Button>
-              </div>
-            </form>
+                {selectedCustomerId && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <label className="text-sm font-semibold text-slate-200">Scegli Cane</label>
+                    <select 
+                      name="dog_id" 
+                      required 
+                      className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                      value={selectedDogId}
+                      onChange={(e) => setSelectedDogId(e.target.value)}
+                    >
+                      {customerDogs.length === 0 && <option value="">Nessun cane registrato</option>}
+                      {customerDogs.map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-200">Tipologia di Servizio</label>
+                  <select name="service_type" required className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
+                    <option value="SELF_SERVICE">Self Service (Nessuna assistenza)</option>
+                    <option value="ASSISTED_WASH">Lavaggio Assistito</option>
+                    <option value="FULL_GROOMING">Toelettatura Completa</option>
+                  </select>
+                </div>
+
+                <div className="pt-2">
+                  <Button type="submit" disabled={isPending || !selectedCustomerId || customerDogs.length === 0} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl py-3 font-semibold transition-all">
+                    {isPending ? "Salvataggio..." : "Conferma ed Inserisci"}
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
