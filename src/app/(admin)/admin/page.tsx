@@ -55,7 +55,7 @@ export default async function AdminHomePage() {
     // Prenotazioni di oggi (escluse annullate)
     supabase
       .from("bookings")
-      .select("id, status", { count: "exact" })
+      .select("id, status, assisted", { count: "exact" })
       .gte("start_time", todayStart)
       .lt("start_time", todayEnd)
       .neq("status", "CANCELLED" as any),
@@ -83,6 +83,8 @@ export default async function AdminHomePage() {
   const liveSessions = sessionsData?.length ?? 0;
   const todayBookingsCount = todayBookings?.length ?? 0;
   const todayConfirmed = (todayBookings ?? []).filter((b) => (b as { status: string }).status === "CONFIRMED").length;
+  const todayAssisted = (todayBookings ?? []).filter((b) => (b as { assisted?: boolean }).assisted).length;
+  const todaySelfService = todayBookingsCount - todayAssisted;
   const totalCustomers = customersData?.length ?? 0;
   const monthRevenue = (monthCharges ?? []).reduce((sum, t) => sum + Number((t as { amount_currency?: string | null }).amount_currency ?? 0), 0);
   const pendingCount = alertBookings?.length ?? 0;
@@ -114,7 +116,7 @@ export default async function AdminHomePage() {
     {
       label: "Prenotazioni oggi",
       value: String(todayBookingsCount),
-      sub: `${todayConfirmed} confermate`,
+      sub: `${todayConfirmed} conf. (${todaySelfService} self / ${todayAssisted} ass.)`,
       Icon: Calendar,
       href: "/admin/prenotazioni",
       tone: "blue",

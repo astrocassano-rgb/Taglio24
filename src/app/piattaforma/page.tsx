@@ -1,23 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart3, Clock, QrCode, ShieldCheck, Wrench, type LucideIcon } from "lucide-react";
+import { BarChart3, Clock, QrCode, ShieldCheck, Wrench, Sparkles, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "DogWash24 — Piattaforma Toilettatura H24",
+  title: "DogWash24 — Piattaforma Toilettatura Ibrida",
   description:
-    "Piattaforma per toelettatura/lavaggio self-service H24: prenotazioni, wallet crediti, dashboard admin e check-in con QR e kiosk di struttura.",
+    "Piattaforma per toelettatura self-service H24 e assistita con personale: prenotazioni, wallet crediti, dashboard admin, check-in QR e kiosk.",
   openGraph: {
-    title: "DogWash24 — Piattaforma Toilettatura H24",
+    title: "DogWash24 — Piattaforma Toilettatura Ibrida",
     description:
-      "Prenotazioni, wallet crediti, dashboard admin e operatività H24 con check-in QR e sessioni live.",
+      "Prenotazioni, wallet crediti, dashboard admin e flessibilità operativa: lavaggi self-service H24 e servizi assistiti.",
     type: "website"
   }
 };
 
 const features: { title: string; description: string; Icon: LucideIcon }[] = [
+  {
+    title: "Flessibilità Ibrida (Self & Staff)",
+    description: "Gestisci postazioni libere in modalità self-service H24 e l'agenda degli operatori per lavaggi assistiti.",
+    Icon: Sparkles
+  },
   {
     title: "Operatività H24 (QR + Kiosk)",
     description: "Check-in con QR firmato, kiosk postazione e sessioni live con timer: controllo operativo in struttura.",
@@ -51,12 +56,11 @@ export default function PiattaformaPage() {
       <section className="space-y-5">
         <div className="flex items-center gap-3">
           <Image src="/logo.png" alt="DogWash24" width={160} height={160} className="h-10 w-auto" priority />
-          <p className="text-xs font-medium tracking-wide text-slate-400">Toelettatura · Self-Service · H24</p>
+          <p className="text-xs font-medium tracking-wide text-slate-400">Toelettatura · Self-Service · Assistito · H24</p>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">La piattaforma per gestire una toilettatura H24</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">La piattaforma completa per gestire Toilettature Self-Service, Assistite o Ibride</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-slate-200">
-          DogWash24 unisce prenotazioni, wallet a crediti e operatività in struttura. Pensata per lavaggi self-service per cani
-          che vogliono ridurre gestione manuale, disguidi e tempi morti.
+          DogWash24 unifica la gestione delle strutture: automatizza il self-service H24 con sblocco QR e chiosco fisico, e offre un&apos;agenda avanzata per le prenotazioni assistite con i tuoi operatori. Riduci la gestione manuale, ottimizza le vasche e massimizza la resa per metro quadro.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link href="/prenota" className="w-full sm:w-auto">
@@ -80,17 +84,16 @@ export default function PiattaformaPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-300">
             <p>
-              La piattaforma nasce per il caso reale di una struttura H24: il cliente prenota, paga con crediti, arriva in locale e
-              si identifica con QR. Tu vedi sessioni e tempi residui, e puoi evolvere verso accensione/spegnimento delle postazioni.
+              La piattaforma unisce due mondi: l&apos;automazione H24 del self-service (prenotazione, crediti, sblocco vasca con QR) e l&apos;efficienza della toelettatura tradizionale con operatore. Monitora sessioni live, gestisci lo staff e ottimizza l&apos;uso delle postazioni in tempo reale.
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-3xl bg-slate-950/40 p-4 ring-1 ring-inset ring-slate-800">
-                <p className="text-sm font-semibold text-slate-50">Meno disguidi</p>
-                <p className="mt-1 text-xs text-slate-400">Anti-overbooking, regole cancellazione e riepiloghi chiari.</p>
+                <p className="text-sm font-semibold text-slate-50">Flessibilità Ibrida</p>
+                <p className="mt-1 text-xs text-slate-400">Configura le postazioni per il self-service, l&apos;assistenza staff o entrambi.</p>
               </div>
               <div className="rounded-3xl bg-slate-950/40 p-4 ring-1 ring-inset ring-slate-800">
-                <p className="text-sm font-semibold text-slate-50">Più controllo H24</p>
-                <p className="mt-1 text-xs text-slate-400">Sessioni live, timer e check-in da kiosk in struttura.</p>
+                <p className="text-sm font-semibold text-slate-50">Zero no-show</p>
+                <p className="mt-1 text-xs text-slate-400">Il pagamento anticipato tramite wallet a crediti abbatte le prenotazioni a vuoto.</p>
               </div>
             </div>
           </CardContent>
@@ -102,9 +105,9 @@ export default function PiattaformaPage() {
             <p className="text-lg font-semibold tracking-tight text-slate-50">Pronta per il locale</p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-300">
-            <p>Webapp mobile-first per clienti + area admin + pagina kiosk per postazioni.</p>
+            <p>Webapp mobile-first per i clienti, dashboard admin per lo staff e pagina Kiosk di check-in per il locale.</p>
             <p className="text-xs text-slate-400">
-              Integrazione hardware (relè, gateway) come step successivo: QR → validazione → sessione → start/stop.
+              Pronta per l&apos;integrazione hardware (relè): sblocco porte e avvio vasca automatico post check-in QR.
             </p>
           </CardContent>
         </Card>

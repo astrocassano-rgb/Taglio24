@@ -22,6 +22,7 @@ import {
   Plus, 
   AlertCircle, 
   X,
+  Check,
   type LucideIcon 
 } from "lucide-react";
 import { 
@@ -640,11 +641,92 @@ export default function PrenotaPage() {
         </Card>
       )}
 
+      {/* --- STEP 2: MODALITÀ DI LAVAGGIO --- */}
+      <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
+        <div className="space-y-0.5 text-left">
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Modalità di Lavaggio</p>
+          <p className="text-sm font-semibold text-slate-200">Come desideri lavare il tuo cane?</p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          {/* Opzione Self-Service */}
+          <button
+            type="button"
+            onClick={() => setAssisted(false)}
+            className={cn(
+              "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
+              !assisted
+                ? "bg-cyan-500/10 ring-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.08)]"
+                : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+            )}
+          >
+            <div className="flex items-start justify-between w-full">
+              <div className={cn(
+                "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
+                !assisted ? "bg-cyan-500/20 ring-cyan-400/30 text-cyan-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+              )}>
+                <PawPrint className="h-4 w-4" />
+              </div>
+              <div className={cn(
+                "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                !assisted ? "bg-cyan-500 border-cyan-400" : "border-slate-700 bg-slate-950"
+              )}>
+                {!assisted && <Check className="h-2.5 w-2.5 text-white" />}
+              </div>
+            </div>
+            <div className="mt-3 text-left">
+              <p className="text-xs font-bold text-slate-100">Self-Service H24</p>
+              <p className="text-[10px] text-slate-450 mt-1 leading-normal">
+                Lavi tu il tuo cane in autonomia usando le nostre attrezzature.
+              </p>
+            </div>
+          </button>
+
+          {/* Opzione Assistito */}
+          <button
+            type="button"
+            onClick={() => setAssisted(true)}
+            className={cn(
+              "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
+              assisted
+                ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+            )}
+          >
+            <div className="flex items-start justify-between w-full">
+              <div className={cn(
+                "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
+                assisted ? "bg-blue-500/20 ring-blue-400/30 text-blue-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+              )}>
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold text-blue-350 ring-1 ring-inset ring-blue-500/30">
+                  +15 crediti
+                </span>
+                <div className={cn(
+                  "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                  assisted ? "bg-blue-500 border-blue-400" : "border-slate-700 bg-slate-950"
+                )}>
+                  {assisted && <Check className="h-2.5 w-2.5 text-white" />}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 text-left">
+              <p className="text-xs font-bold text-slate-100">Lavaggio Assistito</p>
+              <p className="text-[10px] text-slate-450 mt-1 leading-normal">
+                Un nostro toelettatore specializzato laverà e asciugherà il cane per te.
+              </p>
+            </div>
+          </button>
+        </div>
+      </Card>
+
       {/* --- SELEZIONE SERVIZI --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5 text-left">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Servizi</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">3. Servizi</p>
             <p className="text-sm font-semibold text-slate-200">Scegli i trattamenti</p>
           </div>
           <Button
@@ -707,7 +789,7 @@ export default function PrenotaPage() {
       {/* --- SELEZIONE CALENDARIO --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">3. Data Prenotazione</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">4. Data Prenotazione</p>
           <p className="text-xs text-slate-400 font-semibold">{selectedPreviewDay?.label ?? "—"}</p>
         </div>
 
@@ -797,7 +879,7 @@ export default function PrenotaPage() {
       {/* --- GRIGLIA DEGLI ORARI --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
         <div className="space-y-1 text-left">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">4. Orari del giorno</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">5. Orari del giorno</p>
           <p className="text-sm font-semibold text-slate-200">Seleziona la fascia oraria di interesse:</p>
         </div>
 
@@ -972,49 +1054,17 @@ export default function PrenotaPage() {
                         {confirmSlot.time} ({durationMinutes} min)
                       </span>
                     </div>
-                    <div className="flex justify-between py-1">
+                    <div className="flex justify-between py-1 border-b border-slate-900">
                       <span className="text-slate-400">Postazione</span>
                       <span className="font-bold text-slate-200">{confirmSlot.stationName}</span>
                     </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-400">Modalità</span>
+                      <span className={cn("font-bold", assisted ? "text-blue-400" : "text-cyan-400")}>
+                        {assisted ? "Lavaggio Assistito" : "Self-Service H24"}
+                      </span>
+                    </div>
                   </div>
-
-                  {/* OPZIONE IBRIDA (ASSISTENZA OPERATORE) */}
-                  <button
-                    type="button"
-                    onClick={() => !submitting && setAssisted(!assisted)}
-                    disabled={submitting}
-                    className={cn(
-                      "w-full rounded-2xl p-3 text-left ring-1 ring-inset transition-all duration-200 flex items-center gap-3 relative overflow-hidden active:scale-98 cursor-pointer",
-                      assisted
-                        ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
-                        : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
-                    )}
-                  >
-                    <div className={cn(
-                      "rounded-xl p-2 ring-1 ring-inset shrink-0 transition-colors",
-                      assisted ? "bg-blue-500/20 ring-blue-400/30 text-blue-200" : "bg-slate-900 ring-slate-850 text-slate-400"
-                    )}>
-                      <Sparkles className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-bold text-slate-100">Assistenza Operatore</span>
-                        <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-bold text-blue-300 ring-1 ring-inset ring-blue-500/30 shrink-0">
-                          +15 crediti
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-normal">
-                        Un dipendente DogWash24 laverà e asciugherà il cane al posto tuo.
-                      </p>
-                    </div>
-                    {/* Visual Checkbox */}
-                    <div className={cn(
-                      "h-4 w-4 rounded-full border flex items-center justify-center shrink-0 transition-all",
-                      assisted ? "bg-blue-500 border-blue-400" : "border-slate-700 bg-slate-950"
-                    )}>
-                      {assisted && <CheckCircle2 className="h-2.5 w-2.5 text-white" />}
-                    </div>
-                  </button>
 
                   {/* INFO CREDITI */}
                   <div className="rounded-2xl p-4 bg-slate-950/20 border border-slate-800 flex items-center justify-between gap-4">
