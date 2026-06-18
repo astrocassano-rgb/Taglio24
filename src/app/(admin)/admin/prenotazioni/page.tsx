@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import type { Database } from "@/types/database";
+import { SmartAgenda } from "@/components/admin/smart-agenda";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -95,20 +96,26 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
   const stationIds = Array.from(new Set(rows.map((b) => b.station_id))).filter(Boolean);
   const customerIds = Array.from(new Set(rows.map((b) => b.customer_id))).filter(Boolean);
 
-  const [{ data: dogs }, { data: stations }, { data: profiles }] = await Promise.all([
-    dogIds.length ? supabase.from("dogs").select("id, name").in("id", dogIds) : Promise.resolve({ data: [] as Dog[] }),
-    stationIds.length ? supabase.from("stations").select("id, name, type").in("id", stationIds) : Promise.resolve({ data: [] as Station[] }),
-    customerIds.length ? supabase.from("profiles").select("id, email, first_name, last_name").in("id", customerIds) : Promise.resolve({ data: [] as Profile[] })
+  const [{ data: allDogsAny }, { data: stationsAny }, { data: allProfilesAny }, { data: settingsAny }] = await Promise.all([
+    supabase.from("dogs").select("id, name, owner_id"),
+    supabase.from("stations").select("id, name, type"),
+    supabase.from("profiles").select("id, email, first_name, last_name"),
+    supabase.from("system_settings").select("*").eq("id", 1).single()
   ]);
 
+  const allDogs = allDogsAny as any[];
+  const stations = stationsAny as any[];
+  const allProfiles = allProfilesAny as any[];
+  const settings = settingsAny as any;
+
   const dogNameById: Record<string, string> = {};
-  for (const d of (dogs ?? []) as Dog[]) dogNameById[d.id] = d.name;
+  for (const d of (allDogs ?? [])) dogNameById[d.id] = d.name;
 
   const stationById: Record<string, { name: string; type: string }> = {};
   for (const s of (stations ?? []) as Station[]) stationById[s.id] = { name: s.name, type: s.type };
 
   const customerById: Record<string, string> = {};
-  for (const p of (profiles ?? []) as Profile[]) {
+  for (const p of (allProfiles ?? [])) {
     const fullName = [p.first_name, p.last_name].filter(Boolean).join(" ").trim();
     customerById[p.id] = fullName || p.email || p.id;
   }
@@ -181,80 +188,17 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
       </Card>
 
       {rows.length ? (
-        <div className="grid gap-3">
-          {rows.map((b) => {
-            const start = new Date(b.start_time);
-            const end = new Date(b.end_time);
-            const station = stationById[b.station_id]?.name ?? "Postazione";
-            const dog = dogNameById[b.dog_id] ?? "Cane";
-            const customer = customerById[b.customer_id] ?? "Cliente";
-            const timeLabel = `${formatDay(start)} · ${formatTime(start)}–${formatTime(end)}`;
-
-            return (
-              <Card key={b.id} className="overflow-hidden">
-                <CardContent className="space-y-3 pt-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-50">{timeLabel}</p>
-                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
-                        <span>{station}</span>
-                        <span>·</span>
-                        <span>{dog}</span>
-                        <span>·</span>
-                        <span>{customer}</span>
-                        {b.service_type === "ASSISTED_WASH" && (
-                          <span className="rounded bg-blue-500/15 text-blue-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-blue-500/20">
-                            Assistito
-                          </span>
-                        )}
-                        {b.service_type === "FULL_GROOMING" && (
-                          <span className="rounded bg-fuchsia-500/15 text-fuchsia-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-fuchsia-500/20">
-                            Toelettatura Completa
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                        <StatusBadge status={b.status} />
-                        <span className="text-[11px] text-slate-400">{b.total_credits} crediti</span>
-                      </div>
-                    </div>
-                    <Link href={`/prenotazioni/${b.id}`} className="shrink-0">
-                      <Button variant="secondary">Dettagli</Button>
-                    </Link>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                    <form action="/api/admin/bookings/status" method="post" className="contents">
-                      <input type="hidden" name="booking_id" value={b.id} />
-                      <input type="hidden" name="status" value="CONFIRMED" />
-                      <Button className="w-full" variant="secondary" type="submit" disabled={b.status !== "PENDING"}>
-                        Conferma
-                      </Button>
-                    </form>
-                    <form action="/api/admin/bookings/status" method="post" className="contents">
-                      <input type="hidden" name="booking_id" value={b.id} />
-                      <input type="hidden" name="status" value="COMPLETED" />
-                      <Button className="w-full" variant="secondary" type="submit" disabled={b.status === "CANCELLED" || b.status === "COMPLETED"}>
-                        Completa
-                      </Button>
-                    </form>
-                    <form action="/api/admin/bookings/status" method="post" className="contents">
-                      <input type="hidden" name="booking_id" value={b.id} />
-                      <input type="hidden" name="status" value="CANCELLED" />
-                      <Button
-                        className="w-full bg-rose-500/10 text-rose-300 ring-1 ring-inset ring-rose-500/25 hover:bg-rose-500/20 active:bg-rose-500/30"
-                        variant="ghost"
-                        type="submit"
-                        disabled={b.status === "CANCELLED" || b.status === "COMPLETED"}
-                      >
-                        Annulla (rimborsa)
-                      </Button>
-                    </form>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="h-[800px] mt-6">
+          <SmartAgenda
+            bookings={rows}
+            stations={stations ?? []}
+            dogNames={dogNameById}
+            customerNames={customerById}
+            allDogs={allDogs ?? []}
+            allProfiles={allProfiles ?? []}
+            maxConcurrentAssisted={settings?.max_concurrent_assisted ?? 1}
+            selectedDateStr={fromRaw || new Date().toISOString()}
+          />
         </div>
       ) : (
         <Card>

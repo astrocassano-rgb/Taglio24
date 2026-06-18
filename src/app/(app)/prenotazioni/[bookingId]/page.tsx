@@ -141,10 +141,14 @@ export default async function PrenotazioneDettaglioPage({
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-medium text-slate-300">Riepilogo</p>
             <div className="flex items-center gap-2">
-              {bookingRecord.assisted && (
-                <span className="rounded-full bg-blue-500/15 text-blue-200 ring-1 ring-inset ring-blue-500/30 px-3 py-1 text-xs font-medium flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  Con Assistenza
+              {bookingRecord.service_type === "ASSISTED_WASH" && (
+                <span className="rounded bg-blue-500/15 text-blue-200 px-2 py-0.5 text-xs font-bold ring-1 ring-inset ring-blue-500/20">
+                  Lavaggio Assistito
+                </span>
+              )}
+              {bookingRecord.service_type === "FULL_GROOMING" && (
+                <span className="rounded bg-fuchsia-500/15 text-fuchsia-200 px-2 py-0.5 text-xs font-bold ring-1 ring-inset ring-fuchsia-500/20">
+                  Toelettatura Completa
                 </span>
               )}
               <span className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${statusTone}`}>{status.label}</span>
@@ -181,11 +185,9 @@ export default async function PrenotazioneDettaglioPage({
                   <p className="text-base font-semibold text-slate-50">
                     {serviceLabel} · {stationName}
                   </p>
-                  {bookingRecord.assisted && (
-                    <p className="text-[11px] text-blue-400 font-semibold mt-0.5">
-                      Operatore incluso (+15 crediti)
-                    </p>
-                  )}
+                  <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                    {bookingRecord.service_type === "FULL_GROOMING" ? "Toelettatura Completa" : bookingRecord.service_type === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service"}
+                  </p>
                 </div>
               </div>
             </div>

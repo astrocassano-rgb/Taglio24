@@ -19,8 +19,7 @@ export async function updateSystemSettings(formData: FormData) {
     throw new Error("Dati non validi.");
   }
 
-  const { error } = await supabase
-    .from("system_settings")
+  const { error } = await (supabase.from("system_settings") as any)
     .update({
       mode,
       max_concurrent_assisted: max_concurrent,
@@ -28,7 +27,7 @@ export async function updateSystemSettings(formData: FormData) {
       price_assisted_wash_credits: price_assisted,
       enable_full_grooming: enable_full,
       price_full_grooming_credits: price_full,
-    })
+    } as any)
     .eq("id", 1);
 
   if (error) {

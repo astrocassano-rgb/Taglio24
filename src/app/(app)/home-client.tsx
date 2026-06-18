@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CreditCard, CalendarDays, PawPrint, LogIn, Mail, Lock, UserPlus, Apple } from "lucide-react";
+import { CreditCard, CalendarDays, PawPrint, LogIn, Mail, Lock, UserPlus, Apple, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -200,7 +200,7 @@ export default function HomeClient() {
         supabase.from("wallets").select("balance_credits").eq("customer_id", userId).maybeSingle(),
         supabase
           .from("bookings")
-          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at, assisted")
+          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at, service_type, operator_cost_credits")
           .eq("customer_id", userId)
           .in("status", ["PENDING", "CONFIRMED"])
           .gte("start_time", new Date().toISOString())
@@ -439,6 +439,10 @@ export default function HomeClient() {
               return (
                 <Card key={b.id}>
                   <CardContent className="space-y-3 pt-4">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span className="font-medium text-slate-100 uppercase tracking-wider">{b.service_type === "FULL_GROOMING" ? "Toelettatura Completa" : b.service_type === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service"}</span>
+                    </div>
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-sm font-semibold">
@@ -448,11 +452,6 @@ export default function HomeClient() {
                           <span>{station}</span>
                           <span>·</span>
                           <span>{dog}</span>
-                          {b.assisted && (
-                            <span className="rounded bg-blue-500/15 text-blue-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-blue-500/20">
-                              Assistito
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="text-right">

@@ -64,12 +64,15 @@ export type Database = {
           created_at?: string;
         };
         Update: {
+          id?: string;
+          owner_id?: string;
           name?: string;
           breed?: string | null;
           size?: Database["public"]["Enums"]["dog_size"];
           weight?: number | null;
           notes?: string | null;
           photo_url?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -101,6 +104,7 @@ export type Database = {
           created_at?: string;
         };
         Update: {
+          id?: string;
           name?: string;
           type?: Database["public"]["Enums"]["station_type"];
           status?: Database["public"]["Enums"]["station_status"];
@@ -110,6 +114,7 @@ export type Database = {
           layout_w?: number;
           layout_h?: number;
           layout_zone?: string;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -141,12 +146,17 @@ export type Database = {
           created_at?: string;
         };
         Update: {
+          id?: string;
+          customer_id?: string;
+          dog_id?: string;
+          station_id?: string;
           start_time?: string;
           end_time?: string;
           status?: Database["public"]["Enums"]["booking_status"];
           total_credits?: number;
           service_type?: Database["public"]["Enums"]["booking_service_type"];
           operator_cost_credits?: number;
+          created_at?: string;
         };
         Relationships: [];
       };

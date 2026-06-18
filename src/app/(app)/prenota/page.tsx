@@ -40,6 +40,7 @@ import { safeGetSession } from "@/lib/supabase/safe-session";
 import type { Database } from "@/types/database";
 import { cn } from "@/lib/cn";
 import { motion, AnimatePresence } from "framer-motion";
+import { sendBookingConfirmationWhatsApp } from "./actions";
 
 type Station = Database["public"]["Tables"]["stations"]["Row"];
 type AvailabilityRow = Database["public"]["Functions"]["get_booking_availability"]["Returns"][number];
@@ -539,6 +540,14 @@ export default function PrenotaPage() {
       if (walletData) {
         setBalanceCredits(walletData.balance_credits);
       }
+      
+      // Invio notifica WhatsApp in background
+      sendBookingConfirmationWhatsApp(currentUserId, {
+        stationName: stations.find(s => s.id === confirmSlot.stationId)?.name || "Postazione",
+        dogName: selectedDog?.name || "Cane",
+        startTime: confirmSlot.start.toISOString(),
+        serviceLabel: serviceType === "FULL_GROOMING" ? "Toelettatura Completa" : serviceType === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service",
+      }).catch(e => console.error("Errore notifica whatsapp:", e));
       
       // Ricarica le disponibilità generali
       void loadAvailability();
@@ -1122,8 +1131,8 @@ export default function PrenotaPage() {
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-slate-400">Modalità</span>
-                      <span className={cn("font-bold", assisted ? "text-blue-400" : "text-cyan-400")}>
-                        {assisted ? "Lavaggio Assistito" : "Self-Service H24"}
+                      <span className={cn("font-bold", serviceType === "FULL_GROOMING" ? "text-fuchsia-400" : serviceType === "ASSISTED_WASH" ? "text-blue-400" : "text-cyan-400")}>
+                        {serviceType === "FULL_GROOMING" ? "Toelettatura Completa" : serviceType === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service H24"}
                       </span>
                     </div>
                   </div>

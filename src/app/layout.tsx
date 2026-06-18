@@ -5,15 +5,15 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Toilettatura Self-Service",
-  description: "Prenotazioni in tempo reale per lavaggio e toelettatura self-service.",
-  applicationName: "Toilettatura",
+  title: "DogWash24",
+  description: "La prima piattaforma ibrida per Self-Service e Toelettatura.",
+  applicationName: "DogWash24",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Toilettatura"
+    title: "DogWash24"
   },
-  manifest: "/manifest.webmanifest"
+  manifest: "/manifest.json"
 };
 
 export const viewport: Viewport = {

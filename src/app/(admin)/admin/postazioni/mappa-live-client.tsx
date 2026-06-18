@@ -453,10 +453,15 @@ export function MappaLiveClient({
                               <Shield className="h-3.5 w-3.5 text-slate-400" />
                               <div>
                                 <p className="font-semibold text-slate-100">Modalità Servizio</p>
-                                {bookingForSelected.assisted ? (
+                                {bookingForSelected.service_type === "FULL_GROOMING" ? (
+                                  <p className="text-[10px] text-fuchsia-400 font-bold flex items-center gap-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
+                                    TOELETTATURA COMPLETA
+                                  </p>
+                                ) : bookingForSelected.service_type === "ASSISTED_WASH" ? (
                                   <p className="text-[10px] text-blue-400 font-bold flex items-center gap-1">
                                     <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-                                    IBRIDO (CON ASSISTENZA OPERATORE)
+                                    LAVAGGIO ASSISTITO
                                   </p>
                                 ) : (
                                   <p className="text-[10px] text-slate-400">Self-Service (Fai-da-te)</p>
