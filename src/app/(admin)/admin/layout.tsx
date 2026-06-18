@@ -14,6 +14,7 @@ import {
   Zap,
   ChevronRight,
   ClipboardList,
+  Settings,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/postazioni",   label: "Postazioni",    Icon: MapPin },
   { href: "/admin/coupons",      label: "Coupon",        Icon: Tag },
   { href: "/admin/audit-logs",   label: "Registro Azioni", Icon: ClipboardList },
+  { href: "/admin/impostazioni", label: "Impostazioni",  Icon: Settings },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -49,14 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {/* Logo brand */}
           <div className="mb-5 flex items-center gap-3 px-1">
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-1 shadow-lg">
-              <Image
-                src="/logo.png"
-                alt="DogWash24"
-                width={36}
-                height={36}
-                className="h-full w-auto object-contain"
-                priority
-              />
+              <span className="font-bold text-slate-100">DW</span>
               {/* Live dot */}
               <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 bg-emerald-400" />
             </div>

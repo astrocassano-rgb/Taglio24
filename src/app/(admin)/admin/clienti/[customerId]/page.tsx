@@ -193,12 +193,17 @@ export default async function AdminClienteDettaglioPage({ params }: { params: Pr
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-sm">
                     🐶
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-semibold text-slate-50">{d.name}</p>
                     <p className="text-xs text-slate-400">
                       {[d.breed, d.size, d.weight ? `${d.weight} kg` : null].filter(Boolean).join(" · ")}
                     </p>
                   </div>
+                  <Link href={`/admin/cani/${d.id}`} className="shrink-0">
+                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-xl bg-slate-800/50 hover:bg-slate-800 border-0">
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  </Link>
                 </div>
               ))
             ) : (

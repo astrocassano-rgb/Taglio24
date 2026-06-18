@@ -68,9 +68,9 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
 
   const { supabase } = await requireAdmin({ next: "/admin/prenotazioni", mode: "notFound" });
 
-  let query = supabase
+    let query = supabase
     .from("bookings")
-    .select("id, customer_id, dog_id, station_id, start_time, end_time, status, total_credits, created_at, assisted")
+    .select("id, customer_id, dog_id, station_id, start_time, end_time, status, total_credits, created_at, service_type")
     .order("start_time", { ascending: false });
 
   if (fromRaw && isIsoDay(fromRaw)) {
@@ -202,9 +202,14 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
                         <span>{dog}</span>
                         <span>·</span>
                         <span>{customer}</span>
-                        {b.assisted && (
+                        {b.service_type === "ASSISTED_WASH" && (
                           <span className="rounded bg-blue-500/15 text-blue-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-blue-500/20">
                             Assistito
+                          </span>
+                        )}
+                        {b.service_type === "FULL_GROOMING" && (
+                          <span className="rounded bg-fuchsia-500/15 text-fuchsia-200 px-1.5 py-0.5 text-[9px] font-bold ring-1 ring-inset ring-fuchsia-500/20">
+                            Toelettatura Completa
                           </span>
                         )}
                       </div>

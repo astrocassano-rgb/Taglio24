@@ -8,6 +8,8 @@ export type Database = {
       station_type: "WASH_BASIN" | "DRYING_ZONE" | "GROOMING_TABLE";
       booking_status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
       token_transaction_type: "CHARGE" | "DEBIT" | "BONUS";
+      operating_mode: "SELF_ONLY" | "ASSISTED_ONLY" | "HYBRID";
+      booking_service_type: "SELF_SERVICE" | "ASSISTED_WASH" | "FULL_GROOMING";
     };
     Tables: {
       profiles: {
@@ -121,7 +123,8 @@ export type Database = {
           end_time: string;
           status: Database["public"]["Enums"]["booking_status"];
           total_credits: number;
-          assisted: boolean;
+          service_type: Database["public"]["Enums"]["booking_service_type"];
+          operator_cost_credits: number;
           created_at: string;
         };
         Insert: {
@@ -133,7 +136,8 @@ export type Database = {
           end_time: string;
           status?: Database["public"]["Enums"]["booking_status"];
           total_credits: number;
-          assisted?: boolean;
+          service_type?: Database["public"]["Enums"]["booking_service_type"];
+          operator_cost_credits?: number;
           created_at?: string;
         };
         Update: {
@@ -141,7 +145,8 @@ export type Database = {
           end_time?: string;
           status?: Database["public"]["Enums"]["booking_status"];
           total_credits?: number;
-          assisted?: boolean;
+          service_type?: Database["public"]["Enums"]["booking_service_type"];
+          operator_cost_credits?: number;
         };
         Relationships: [];
       };
@@ -269,6 +274,120 @@ export type Database = {
           customer_id?: string;
           coupon_id?: string;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          payload: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action: string;
+          entity_type: string;
+          entity_id?: string | null;
+          payload?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          admin_id?: string;
+          action?: string;
+          entity_type?: string;
+          entity_id?: string | null;
+          payload?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      pet_treatments: {
+        Row: {
+          id: string;
+          dog_id: string;
+          treatment_date: string;
+          treatment_type: string;
+          products_used: string | null;
+          groomer_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          dog_id: string;
+          treatment_date?: string;
+          treatment_type: string;
+          products_used?: string | null;
+          groomer_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          dog_id?: string;
+          treatment_date?: string;
+          treatment_type?: string;
+          products_used?: string | null;
+          groomer_notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      pet_gallery: {
+        Row: {
+          id: string;
+          dog_id: string;
+          photo_url: string;
+          caption: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          dog_id: string;
+          photo_url: string;
+          caption?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          dog_id?: string;
+          photo_url?: string;
+          caption?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      system_settings: {
+        Row: {
+          id: number;
+          mode: Database["public"]["Enums"]["operating_mode"];
+          max_concurrent_assisted: number;
+          enable_assisted_wash: boolean;
+          price_assisted_wash_credits: number;
+          enable_full_grooming: boolean;
+          price_full_grooming_credits: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          mode?: Database["public"]["Enums"]["operating_mode"];
+          max_concurrent_assisted?: number;
+          enable_assisted_wash?: boolean;
+          price_assisted_wash_credits?: number;
+          enable_full_grooming?: boolean;
+          price_full_grooming_credits?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          mode?: Database["public"]["Enums"]["operating_mode"];
+          max_concurrent_assisted?: number;
+          enable_assisted_wash?: boolean;
+          price_assisted_wash_credits?: number;
+          enable_full_grooming?: boolean;
+          price_full_grooming_credits?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };

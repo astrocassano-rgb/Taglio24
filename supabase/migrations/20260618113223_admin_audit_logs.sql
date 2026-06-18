@@ -14,19 +14,9 @@ ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can view all audit logs"
     ON public.admin_audit_logs
     FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'
-        )
-    );
+    USING (public.is_admin());
 
 CREATE POLICY "Admins can insert audit logs"
     ON public.admin_audit_logs
     FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'
-        )
-    );
+    WITH CHECK (public.is_admin());
