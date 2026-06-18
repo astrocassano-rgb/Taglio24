@@ -165,8 +165,8 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
                 defaultValue={status}
                 className="h-11 w-full rounded-xl bg-slate-950/40 px-3 text-sm text-slate-50 ring-1 ring-inset ring-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
-                <option value="NOT_CANCELLED">Tutte (escludi annullate)</option>
-                <option value="ALL">Tutte (incluse annullate)</option>
+                <option value="NOT_CANCELLED">Attive (escluse annullate)</option>
+                <option value="ALL">Tutte le prenotazioni</option>
                 <option value="CONFIRMED">Confermate</option>
                 <option value="PENDING">In attesa</option>
                 <option value="COMPLETED">Completate</option>
