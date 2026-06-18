@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { AdminNavLink } from "@/components/layout/admin-nav-link";
@@ -47,10 +48,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <aside className="flex h-fit flex-col rounded-3xl border border-slate-800/80 bg-slate-950/70 p-4 backdrop-blur-md md:sticky md:top-6">
           {/* Logo brand */}
           <div className="mb-5 flex items-center gap-3 px-1">
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-lg"
-              style={{ background: "linear-gradient(135deg, #06b6d4, #14b8a6)" }}
-            >
-              <span className="text-lg">🐾</span>
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-1 shadow-lg">
+              <Image
+                src="/logo.png"
+                alt="DogWash24"
+                width={36}
+                height={36}
+                className="h-full w-auto object-contain"
+                priority
+              />
               {/* Live dot */}
               <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 bg-emerald-400" />
             </div>
