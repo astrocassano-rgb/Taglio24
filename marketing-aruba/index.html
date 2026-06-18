@@ -730,8 +730,12 @@
       }
       .toggle-btn.on .toggle-thumb { transform: translateX(20px); }
       .annual-badge {
-        background: var(--emerald-dim); color: var(--emerald);
-        border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.08));
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+        letter-spacing: 0.02em;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
       }
       .pricing-grid { display: grid; gap: 16px; }
       @media (min-width: 800px) { .pricing-grid { grid-template-columns: repeat(3, 1fr); align-items: start; } }
@@ -1855,10 +1859,11 @@
         </div>
         <div class="pricing-toggle">
           <span id="toggle-label-mensile" class="active">Mensile</span>
-          <div class="toggle-btn" id="billing-toggle" onclick="toggleBilling()" role="switch" aria-checked="false"></div>
+          <div class="toggle-btn" id="billing-toggle" onclick="toggleBilling()" role="switch" aria-checked="false">
+            <div class="toggle-thumb"></div>
+          </div>
           <span id="toggle-label-annuale">Annuale</span>
-          <span class="annual-badge">−2 mesi</span>
-          <div class="toggle-thumb" style="display:none"></div>
+          <span class="annual-badge">Sconto 17% (2 Mesi Gratis)</span>
         </div>
         <div class="pricing-grid">
           <!-- Piano 1: Licenza -->
