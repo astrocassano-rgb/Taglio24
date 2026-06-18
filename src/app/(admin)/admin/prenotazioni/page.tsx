@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import type { Database } from "@/types/database";
 import { SmartAgenda } from "@/components/admin/smart-agenda";
+import { format, parseISO } from "date-fns";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -58,8 +59,26 @@ type StatusFilter = "NOT_CANCELLED" | "ALL" | "PENDING" | "CONFIRMED" | "COMPLET
 
 export default async function AdminPrenotazioniPage({ searchParams }: { searchParams?: Promise<SearchParams> }) {
   const params = (await searchParams) ?? {};
-  const fromRaw = typeof params.from === "string" ? params.from : "";
-  const toRaw = typeof params.to === "string" ? params.to : "";
+  
+  // Get active date parameter (default is today)
+  const dateRaw = typeof params.date === "string" ? params.date : format(new Date(), "yyyy-MM-dd");
+  
+  // Parse date and calculate start/end of its week
+  const activeDate = parseISO(dateRaw.includes("T") ? dateRaw : `${dateRaw}T12:00:00`);
+  const dayOfWeek = activeDate.getDay();
+  const diffToMonday = activeDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const activeMonday = new Date(activeDate.getTime());
+  activeMonday.setDate(diffToMonday);
+  
+  const activeSunday = new Date(activeMonday.getTime());
+  activeSunday.setDate(activeMonday.getDate() + 6);
+
+  const defaultFrom = format(activeMonday, "yyyy-MM-dd");
+  const defaultTo = format(activeSunday, "yyyy-MM-dd");
+
+  const fromRaw = typeof params.from === "string" ? params.from : defaultFrom;
+  const toRaw = typeof params.to === "string" ? params.to : defaultTo;
+  
   const statusRaw = typeof params.status === "string" ? params.status : "NOT_CANCELLED";
   const status = (["NOT_CANCELLED", "ALL", "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].includes(statusRaw)
     ? statusRaw
@@ -197,7 +216,7 @@ export default async function AdminPrenotazioniPage({ searchParams }: { searchPa
             allDogs={allDogs ?? []}
             allProfiles={allProfiles ?? []}
             maxConcurrentAssisted={settings?.max_concurrent_assisted ?? 1}
-            selectedDateStr={fromRaw || new Date().toISOString()}
+            selectedDateStr={dateRaw}
           />
         </div>
       ) : (

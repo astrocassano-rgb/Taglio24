@@ -53,7 +53,6 @@ interface SmartAgendaProps {
 }
 
 const SLOT_MINUTES = 30;
-// COMPACT SCALE: 1 hour = 60px (30px per half-hour slot). 1 minute = 1px.
 const HOUR_HEIGHT = 60;
 const MINUTE_SCALE = 1.0;
 
@@ -69,6 +68,7 @@ export function SmartAgenda({
 }: SmartAgendaProps) {
   const router = useRouter();
   const gridContainerRef = useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = useState<"giorno" | "settimana">("settimana");
   
   // Normalize selected date
   const selectedDate = useMemo(() => {
@@ -85,6 +85,7 @@ export function SmartAgenda({
   const [modalDate, setModalDate] = useState<string>("");
   const [modalTime, setModalTime] = useState<string>("");
   const [modalDuration, setModalDuration] = useState<number>(30);
+  const [modalStationId, setModalStationId] = useState<string>("");
 
   // Update current time indicator every minute
   useEffect(() => {
@@ -100,8 +101,9 @@ export function SmartAgenda({
       setModalDate(format(selectedSlot.time, "yyyy-MM-dd"));
       setModalTime(format(selectedSlot.time, "HH:mm"));
       setModalDuration(30);
+      setModalStationId(selectedSlot.stationId || stations[0]?.id || "");
     }
-  }, [selectedSlot]);
+  }, [selectedSlot, stations]);
 
   const customerDogs = useMemo(() => {
     return allDogs.filter(d => d.customer_id === selectedCustomerId);
@@ -114,6 +116,7 @@ export function SmartAgenda({
       const startDateTime = new Date(`${modalDate}T${modalTime}:00`);
       const endDateTime = new Date(startDateTime.getTime() + modalDuration * 60000);
       
+      formData.set("station_id", modalStationId);
       formData.set("start_time", startDateTime.toISOString());
       formData.set("end_time", endDateTime.toISOString());
 
@@ -126,7 +129,22 @@ export function SmartAgenda({
     }
   }
 
-  // Filter bookings for selected day
+  // Calculate week days relative to selectedDate (Monday to Sunday)
+  const weekDays = useMemo(() => {
+    const date = new Date(selectedDate);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.getTime());
+    monday.setDate(diff);
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      days.push(addDays(monday, i));
+    }
+    return days;
+  }, [selectedDate]);
+
+  // Filter bookings for the selected day (Giorno view)
   const dailyBookings = useMemo(() => {
     return bookings.filter(b => {
       const bDate = parseISO(b.start_time);
@@ -134,16 +152,25 @@ export function SmartAgenda({
     });
   }, [bookings, selectedDate]);
 
-  // Dynamically compute START and END hours for the day to avoid empty grid space
+  // Filter bookings for the entire week (Settimana view)
+  const weeklyBookings = useMemo(() => {
+    return bookings.filter(b => {
+      const bDate = parseISO(b.start_time);
+      return weekDays.some(wd => isSameDay(wd, bDate)) && b.status !== 'CANCELLED';
+    });
+  }, [bookings, weekDays]);
+
+  // Dynamically compute START and END hours for the day or week to avoid empty grid space
   const { startHour, endHour } = useMemo(() => {
-    if (dailyBookings.length === 0) {
+    const activeBookings = viewMode === "giorno" ? dailyBookings : weeklyBookings;
+    if (activeBookings.length === 0) {
       return { startHour: 8, endHour: 19 }; // Compact default
     }
     
     let minHour = 8;
     let maxHour = 19;
 
-    dailyBookings.forEach((b) => {
+    activeBookings.forEach((b) => {
       const start = parseISO(b.start_time).getHours();
       const end = parseISO(b.end_time).getHours() + 1;
       if (start < minHour) minHour = start;
@@ -154,19 +181,21 @@ export function SmartAgenda({
     const finalEnd = Math.min(24, maxHour + 1);
 
     return { startHour: finalStart, endHour: finalEnd };
-  }, [dailyBookings]);
+  }, [dailyBookings, weeklyBookings, viewMode]);
 
   // Calculate total slots based on dynamic hours
   const totalMinutes = (endHour - startHour) * 60;
   const numSlots = totalMinutes / SLOT_MINUTES;
 
-  // Calculate operator/groomer load per slot
+  // Calculate operator/groomer load per slot (active view dependent)
   const groomerLoad = useMemo(() => {
     const load = new Array(numSlots).fill(0);
     const baseDate = new Date(selectedDate);
     baseDate.setHours(startHour, 0, 0, 0);
 
-    dailyBookings.forEach(b => {
+    const activeBookings = viewMode === "giorno" ? dailyBookings : weeklyBookings;
+
+    activeBookings.forEach(b => {
       if (b.service_type === "ASSISTED_WASH" || b.service_type === "FULL_GROOMING") {
         const start = parseISO(b.start_time);
         const end = parseISO(b.end_time);
@@ -182,9 +211,9 @@ export function SmartAgenda({
       }
     });
     return load;
-  }, [dailyBookings, numSlots, selectedDate, startHour]);
+  }, [dailyBookings, weeklyBookings, viewMode, numSlots, selectedDate, startHour]);
 
-  // Generate date carousel strip (6 days before, selected, 6 days after)
+  // Carousel date range strip (6 days before, selected, 6 days after)
   const dateStrip = useMemo(() => {
     const dates = [];
     for (let i = -6; i <= 6; i++) {
@@ -196,8 +225,18 @@ export function SmartAgenda({
   const handleDateClick = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     const params = new URLSearchParams(window.location.search);
-    params.set("from", dateStr);
-    params.set("to", dateStr);
+    
+    // Set from/to range to Monday-Sunday of the clicked date to ensure weekly view data is fetched
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.getTime());
+    monday.setDate(diff);
+    const sunday = addDays(monday, 6);
+
+    params.set("date", dateStr);
+    params.set("from", format(monday, "yyyy-MM-dd"));
+    params.set("to", format(sunday, "yyyy-MM-dd"));
+    
     router.push(`/admin/prenotazioni?${params.toString()}`);
   };
 
@@ -232,15 +271,43 @@ export function SmartAgenda({
   return (
     <div className="flex flex-col h-full bg-slate-950 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl transition-all duration-300">
       
-      {/* 1. APPLE-STYLE DATE STRIP CAROUSEL WITH NAVIGATION CHEVRONS */}
-      <div className="bg-slate-900/30 backdrop-blur-md border-b border-slate-800/80 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-cyan-400" /> Calendario Impegni
-          </h3>
-          <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full font-semibold border border-slate-700/50">
-            {format(selectedDate, "EEEE d MMMM yyyy", { locale: it })}
-          </span>
+      {/* 1. APPLE-STYLE DATE STRIP CAROUSEL WITH VIEW SELECTOR */}
+      <div className="bg-slate-900/30 backdrop-blur-md border-b border-slate-800/80 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-400" /> Calendario Impegni
+            </h3>
+            <p className="text-[10px] text-slate-400 font-semibold">
+              {format(selectedDate, "EEEE d MMMM yyyy", { locale: it })}
+            </p>
+          </div>
+          
+          {/* Day / Week View Selector Switch */}
+          <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800/80 shadow-inner">
+            <button
+              onClick={() => setViewMode("giorno")}
+              className={cn(
+                "px-4 py-1.5 text-xs font-black rounded-lg transition-all duration-200",
+                viewMode === "giorno" 
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md" 
+                  : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              Giorno
+            </button>
+            <button
+              onClick={() => setViewMode("settimana")}
+              className={cn(
+                "px-4 py-1.5 text-xs font-black rounded-lg transition-all duration-200",
+                viewMode === "settimana" 
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md" 
+                  : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              Settimana
+            </button>
+          </div>
         </div>
         
         {/* Navigation Chevrons + Scrollable list */}
@@ -253,7 +320,7 @@ export function SmartAgenda({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none custom-scrollbar">
+          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {dateStrip.map((date, idx) => {
               const isSelected = isSameDay(date, selectedDate);
               const isToday = isSameDay(date, new Date());
@@ -308,7 +375,7 @@ export function SmartAgenda({
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Carico Operatori ({maxConcurrentAssisted} max)
           </h3>
-          <span className="text-[10px] text-slate-500 font-semibold">Orari di picco evidenziati</span>
+          <span className="text-[10px] text-slate-500 font-semibold">Attività su base oraria</span>
         </div>
         <div className="flex w-full h-3 rounded-full overflow-hidden border border-slate-800/60 bg-slate-950/80 p-[1.5px]">
           {groomerLoad.map((load, i) => {
@@ -333,8 +400,8 @@ export function SmartAgenda({
         </div>
       </div>
 
-      {/* 3. GOOGLE CALENDAR STYLE COMPACT GRID */}
-      <div className="flex-1 overflow-auto relative custom-scrollbar bg-slate-950" ref={gridContainerRef}>
+      {/* 3. GOOGLE CALENDAR GRID (GIORNO / SETTIMANA DETTAGLI) */}
+      <div className="flex-1 overflow-auto relative custom-scrollbar bg-slate-950 animate-in fade-in duration-300" ref={gridContainerRef}>
         <div className="min-w-[800px] flex relative select-none">
           
           {/* Time Axis Column - Height: 60px per hour */}
@@ -349,8 +416,8 @@ export function SmartAgenda({
             ))}
           </div>
 
-          {/* Stations Columns */}
-          {stations.map(station => (
+          {/* ────────────────── COLONNE GIORNO (Postazioni) ────────────────── */}
+          {viewMode === "giorno" && stations.map(station => (
             <div key={station.id} className="flex-1 border-r border-slate-800/60 relative min-w-[200px] group/col">
               
               {/* Sticky Station Header */}
@@ -359,10 +426,8 @@ export function SmartAgenda({
                 <p className="text-[8px] text-cyan-400/80 font-extrabold uppercase tracking-widest mt-0.5">{station.type.replace('_', ' ')}</p>
               </div>
 
-              {/* Grid Cells - 30px per half-hour slot */}
+              {/* Grid Background */}
               <div className="relative bg-slate-950" style={{ height: `${(endHour - startHour) * HOUR_HEIGHT}px` }}>
-                
-                {/* Grid Divider Lines spanning across */}
                 {Array.from({ length: (endHour - startHour) * 2 }).map((_, i) => {
                   const isHourLine = i % 2 === 0;
                   const time = addMinutes(new Date(selectedDate).setHours(startHour, 0, 0, 0), i * 30);
@@ -380,7 +445,6 @@ export function SmartAgenda({
                         setSelectedSlot({ stationId: station.id, time });
                       }}
                     >
-                      {/* Plus icon on hover */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity bg-cyan-500/[0.03]">
                         <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 text-cyan-400 text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg">
                           <Plus className="w-3 h-3" />
@@ -391,19 +455,16 @@ export function SmartAgenda({
                   );
                 })}
 
-                {/* Overlapping/Absolute Booking Cards */}
+                {/* Daily Bookings */}
                 {dailyBookings.filter(b => b.station_id === station.id).map(booking => {
                   const start = parseISO(booking.start_time);
                   const end = parseISO(booking.end_time);
-                  
                   const startTotalMinutes = (start.getHours() * 60 + start.getMinutes()) - (startHour * 60);
                   const durationMins = differenceInMinutes(end, start);
                   
-                  // Position & scale calculations: 1 minute = 1.0px (60px/hour)
                   const top = startTotalMinutes * MINUTE_SCALE;
                   const height = durationMins * MINUTE_SCALE;
 
-                  // Dynamic styles according to service type (Google Calendar look)
                   let accentColor = "from-cyan-500 to-blue-600";
                   let bgColors = "bg-cyan-500/[0.08] hover:bg-cyan-500/[0.12] border-cyan-500/30 shadow-cyan-500/[0.02]";
                   let textPrimary = "text-cyan-200";
@@ -433,19 +494,15 @@ export function SmartAgenda({
                       )}
                       style={{ top: `${top + 1.5}px`, height: `${height - 3}px` }}
                       onClick={(e) => {
-                        e.stopPropagation(); // Avoid triggering slot creation
+                        e.stopPropagation();
                         setSelectedSlot({ stationId: booking.station_id, time: start });
                         setSelectedCustomerId(booking.customer_id);
                         setModalDuration(durationMins);
                       }}
                     >
-                      {/* Left accent bar */}
                       <div className={cn("w-1 shrink-0 bg-gradient-to-b", accentColor)} />
-
-                      {/* Card Body with responsive sizing layouts */}
                       <div className="flex-1 flex flex-col p-1.5 min-w-0 justify-between">
                         {height < 38 ? (
-                          /* Micro layout (for 30 minutes slots - 30px height) */
                           <div className="flex items-center justify-between gap-1.5 w-full h-full">
                             <div className="flex items-center gap-1 min-w-0">
                               <Icon className={cn("w-3 h-3 shrink-0", textPrimary)} />
@@ -458,7 +515,6 @@ export function SmartAgenda({
                             </span>
                           </div>
                         ) : height < 64 ? (
-                          /* Compact layout (for 45-60 min slots - 45px to 60px height) */
                           <div className="flex flex-col justify-between h-full">
                             <div className="flex items-center justify-between gap-1 shrink-0">
                               <div className="flex items-center gap-1 min-w-0">
@@ -474,7 +530,6 @@ export function SmartAgenda({
                             </div>
                           </div>
                         ) : (
-                          /* Standard layout (for > 60 min slots) */
                           <>
                             <div className="flex items-center justify-between gap-1 mb-0.5 shrink-0">
                               <div className="flex items-center gap-1 min-w-0">
@@ -495,11 +550,6 @@ export function SmartAgenda({
                                 {customerNames[booking.customer_id] || "Cliente"}
                               </div>
                             </div>
-                            {height >= 80 && (
-                              <div className="text-[8px] text-slate-500 font-bold mt-0.5 shrink-0">
-                                Durata: {durationMins} min
-                              </div>
-                            )}
                           </>
                         )}
                       </div>
@@ -509,6 +559,165 @@ export function SmartAgenda({
               </div>
             </div>
           ))}
+
+          {/* ────────────────── COLONNE SETTIMANA (Giorni Settimana) ────────────────── */}
+          {viewMode === "settimana" && weekDays.map((day, idx) => {
+            const isToday = isSameDay(day, new Date());
+            const isActiveDay = isSameDay(day, selectedDate);
+            const dayBookings = weeklyBookings.filter(b => isSameDay(parseISO(b.start_time), day));
+
+            return (
+              <div key={idx} className={cn("flex-1 border-r border-slate-800/60 relative min-w-[130px] group/col")}>
+                
+                {/* Sticky Day Header */}
+                <div className={cn(
+                  "h-12 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md sticky top-0 z-10 flex flex-col justify-center items-center py-2 text-center shadow-sm",
+                  isActiveDay ? "bg-slate-900/40" : ""
+                )}>
+                  <p className={cn(
+                    "text-[8px] font-extrabold uppercase tracking-widest",
+                    isToday ? "text-cyan-400" : "text-slate-500"
+                  )}>
+                    {format(day, "EEEE", { locale: it }).slice(0, 3)}
+                  </p>
+                  <p className={cn(
+                    "text-xs font-black mt-0.5 w-6 h-6 flex items-center justify-center rounded-full leading-none",
+                    isToday 
+                      ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/20" 
+                      : isActiveDay 
+                        ? "bg-slate-800 text-slate-200" 
+                        : "text-slate-300"
+                  )}>
+                    {format(day, "d")}
+                  </p>
+                </div>
+
+                {/* Grid Cells */}
+                <div className="relative bg-slate-950" style={{ height: `${(endHour - startHour) * HOUR_HEIGHT}px` }}>
+                  {Array.from({ length: (endHour - startHour) * 2 }).map((_, i) => {
+                    const isHourLine = i % 2 === 0;
+                    const time = addMinutes(new Date(day).setHours(startHour, 0, 0, 0), i * 30);
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className={cn(
+                          "transition-colors cursor-pointer relative group/cell flex items-center justify-center",
+                          isHourLine ? "border-b border-slate-800/40" : "border-b border-dashed border-slate-800/25",
+                          "hover:bg-slate-900/30"
+                        )}
+                        style={{ height: '30px' }}
+                        onClick={() => {
+                          setSelectedSlot({ stationId: "", time });
+                        }}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity bg-cyan-500/[0.03]">
+                          <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 text-cyan-400 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
+                            <Plus className="w-3 h-3" />
+                            <span>{format(time, 'HH:mm')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Weekly Bookings for this column day */}
+                  {dayBookings.map(booking => {
+                    const start = parseISO(booking.start_time);
+                    const end = parseISO(booking.end_time);
+                    const startTotalMinutes = (start.getHours() * 60 + start.getMinutes()) - (startHour * 60);
+                    const durationMins = differenceInMinutes(end, start);
+                    
+                    const top = startTotalMinutes * MINUTE_SCALE;
+                    const height = durationMins * MINUTE_SCALE;
+
+                    let accentColor = "from-cyan-500 to-blue-600";
+                    let bgColors = "bg-cyan-500/[0.08] hover:bg-cyan-500/[0.12] border-cyan-500/30 shadow-cyan-500/[0.02]";
+                    let textPrimary = "text-cyan-200";
+                    let Icon = PawPrint;
+                    let label = "Self-Service";
+
+                    if (booking.service_type === "ASSISTED_WASH") {
+                      accentColor = "from-blue-500 to-indigo-600";
+                      bgColors = "bg-blue-500/[0.08] hover:bg-blue-500/[0.12] border-blue-500/30 shadow-blue-500/[0.02]";
+                      textPrimary = "text-blue-200";
+                      Icon = Sparkles;
+                      label = "Assistito";
+                    } else if (booking.service_type === "FULL_GROOMING") {
+                      accentColor = "from-fuchsia-500 to-pink-600";
+                      bgColors = "bg-fuchsia-500/[0.08] hover:bg-fuchsia-500/[0.12] border-fuchsia-500/30 shadow-fuchsia-500/[0.02]";
+                      textPrimary = "text-fuchsia-200";
+                      Icon = Scissors;
+                      label = "Grooming";
+                    }
+
+                    // Retrieve active station name
+                    const stName = stations.find(s => s.id === booking.station_id)?.name || "Postazione";
+
+                    return (
+                      <div
+                        key={booking.id}
+                        className={cn(
+                          "absolute left-1 right-1 rounded-xl border flex flex-row overflow-hidden p-0 transition-all duration-300 hover:ring-2 hover:ring-white/10 hover:shadow-2xl hover:z-10 cursor-pointer active:scale-[0.98]",
+                          bgColors
+                        )}
+                        style={{ top: `${top + 1.5}px`, height: `${height - 3}px` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSlot({ stationId: booking.station_id, time: start });
+                          setSelectedCustomerId(booking.customer_id);
+                          setModalDuration(durationMins);
+                        }}
+                      >
+                        <div className={cn("w-1 shrink-0 bg-gradient-to-b", accentColor)} />
+                        <div className="flex-1 flex flex-col p-1 min-w-0 justify-between">
+                          {height < 38 ? (
+                            <div className="flex items-center justify-between gap-1 w-full h-full">
+                              <span className="text-[9px] font-black text-slate-100 truncate">
+                                {dogNames[booking.dog_id] || "Sconosciuto"}
+                              </span>
+                              <span className="text-[8px] font-bold text-slate-400 shrink-0">
+                                {format(start, 'HH:mm')}
+                              </span>
+                            </div>
+                          ) : height < 64 ? (
+                            <div className="flex flex-col justify-between h-full">
+                              <div className="flex items-center justify-between gap-0.5 shrink-0">
+                                <span className="text-[8px] font-extrabold text-slate-300 truncate">{stName}</span>
+                                <span className="text-[8px] font-bold text-slate-400 shrink-0">{format(start, 'HH:mm')}</span>
+                              </div>
+                              <div className="text-[10px] font-black text-slate-100 truncate">
+                                {dogNames[booking.dog_id] || "Sconosciuto"}
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between gap-1 mb-0.5 shrink-0">
+                                <span className="text-[8px] font-extrabold text-slate-300 truncate">{stName}</span>
+                                <span className="text-[8px] font-bold text-slate-400 shrink-0">
+                                  {format(start, 'HH:mm')} - {format(end, 'HH:mm')}
+                                </span>
+                              </div>
+                              <div className="flex-1 flex flex-col justify-center min-w-0">
+                                <div className="text-[11px] font-black text-slate-100 truncate flex items-center gap-1">
+                                  <PawPrint className="w-3 h-3 text-slate-400 shrink-0" />
+                                  {dogNames[booking.dog_id] || "Sconosciuto"}
+                                </div>
+                                <div className="text-[9px] text-slate-400 font-bold truncate mt-0.5 flex items-center gap-1">
+                                  <User className="w-3 h-3 text-slate-500 shrink-0" />
+                                  {customerNames[booking.customer_id] || "Cliente"}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
 
           {/* DYNAMIC CURRENT TIME INDICATOR LINE */}
           {showCurrentTimeLine && currentTimePosition > 0 && currentTimePosition < (endHour - startHour) * HOUR_HEIGHT && (
@@ -543,10 +752,19 @@ export function SmartAgenda({
             </div>
             
             <form action={handleCreate} className="p-5 space-y-4">
-              <input type="hidden" name="station_id" value={selectedSlot.stationId} />
               
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-sm text-slate-300">
-                <p><strong>Postazione:</strong> {stations.find(s => s.id === selectedSlot.stationId)?.name}</p>
+              {/* STATION SELECTION DROPDOWN */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-300">Postazione</label>
+                <select
+                  value={modalStationId}
+                  onChange={(e) => setModalStationId(e.target.value)}
+                  className="w-full h-11 rounded-xl bg-slate-950 border border-slate-800 px-3 text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                >
+                  {stations.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.type.replace('_', ' ')})</option>
+                  ))}
+                </select>
               </div>
 
               {/* DATE & TIME ADJUSTMENT FIELDS */}
