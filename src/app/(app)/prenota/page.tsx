@@ -580,7 +580,8 @@ export default function PrenotaPage() {
 
   return (
     <div className="space-y-6 max-w-md mx-auto pb-10">
-      <style dangerouslySetInnerHTML={{__html: `
+      {/* Nasconde scrollbar — CSS puro, nessun dangerouslySetInnerHTML */}
+      <style>{`
         .scrollbar-none::-webkit-scrollbar {
           display: none;
         }
@@ -588,7 +589,7 @@ export default function PrenotaPage() {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-      `}} />
+      `}</style>
 
       <header className="space-y-2 text-center">
         <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">

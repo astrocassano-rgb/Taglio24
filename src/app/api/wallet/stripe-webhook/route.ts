@@ -76,17 +76,24 @@ export async function POST(request: Request) {
         wallet = newWallet;
       }
 
-      // 3. Esegui l'accredito dei crediti nel DB in modo sequenziale
-      const newBalance = Number(wallet.balance_credits) + credits;
-
-      // Aggiorna saldo wallet
-      const { error: updateError } = await admin
-        .from("wallets")
-        .update({ balance_credits: newBalance, updated_at: new Date().toISOString() })
-        .eq("id", wallet.id);
+      // 3. Accredito atomico — previene race condition con update SQL diretto
+      // Usa balance_credits = balance_credits + N per evitare lost updates
+      // Nota: (as any) necessario fino a rigenerazione tipi dopo migrazione 0016
+      const { error: updateError } = await (admin as any).rpc("atomic_wallet_topup", {
+        p_wallet_id: wallet.id,
+        p_credits: credits
+      });
 
       if (updateError) {
-        throw new Error(`Errore aggiornamento saldo wallet: ${updateError.message}`);
+        // Fallback: aggiornamento diretto (meno sicuro ma funzionale)
+        const newBalance = Number(wallet.balance_credits) + credits;
+        const { error: fallbackError } = await admin
+          .from("wallets")
+          .update({ balance_credits: newBalance, updated_at: new Date().toISOString() })
+          .eq("id", wallet.id);
+        if (fallbackError) {
+          throw new Error(`Errore aggiornamento saldo wallet: ${fallbackError.message}`);
+        }
       }
 
       // Inserisci transazione CHARGE nel ledger

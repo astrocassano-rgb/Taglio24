@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function isAdminUser(user: any) {
   return Boolean(user && user.app_metadata && user.app_metadata.role === "admin");
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   }
 
   const contentType = request.headers.get("content-type") ?? "";
-  const referer = request.headers.get("referer") ?? "/admin/prenotazioni";
+  const referer = safeRedirectPath(request.headers.get("referer"), "/admin/prenotazioni");
 
   let bookingId = "";
   let status = "";

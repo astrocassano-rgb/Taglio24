@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Security Headers (meta) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'; object-src 'none'; base-uri 'self';" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
     <title>DogWash24 — Piattaforma Toilettatura H24 | Prenotazioni, Wallet &amp; Check-in QR</title>
     <meta name="description" content="DogWash24 è la piattaforma SaaS per toelettatura e lavaggio cani self-service H24: prenotazioni guidate, wallet a crediti, dashboard admin, check-in QR e sessioni live delle postazioni." />
     <meta name="keywords" content="DogWash24, toelettatura cani, lavaggio cani self service, SaaS pet, prenotazioni cani, wallet crediti, check-in QR, postazioni H24" />
@@ -1170,8 +1173,8 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 48px;">
           <!-- Card 1: Self-Service -->
           <div class="card card-hover fade-up" style="padding: 32px; display: flex; flex-direction: column; gap: 16px; background: rgba(6, 182, 212, 0.03); border-color: rgba(6, 182, 212, 0.15);">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(6, 182, 212, 0.12); color: var(--cyan); font-size: 24px;">
-              🐾
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 28px; background: rgba(6, 182, 212, 0.12); color: var(--cyan); overflow: hidden; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);">
+              <img src="../immagini_sito/icona_self-service-H24.png" alt="Lavaggio Self-Service H24" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1);" />
             </div>
             <h3 style="font-size: 20px; font-weight: 700; color: #fff;">1. Lavaggio Self-Service H24</h3>
             <p style="color: var(--muted); font-size: 14px; flex-grow: 1; line-height: 1.6;">
@@ -1186,8 +1189,8 @@
 
           <!-- Card 2: Assistito -->
           <div class="card card-hover fade-up" style="padding: 32px; display: flex; flex-direction: column; gap: 16px; background: rgba(139, 92, 246, 0.03); border-color: rgba(139, 92, 246, 0.15); transition-delay:0.1s;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(139, 92, 246, 0.12); color: #a78bfa; font-size: 24px;">
-              ✂️
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 28px; background: rgba(139, 92, 246, 0.12); color: #a78bfa; overflow: hidden; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);">
+              <img src="../immagini_sito/icona_toilettatura%20assistita.png" alt="Toelettatura Assistita" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1);" />
             </div>
             <h3 style="font-size: 20px; font-weight: 700; color: #fff;">2. Toelettatura Assistita</h3>
             <p style="color: var(--muted); font-size: 14px; flex-grow: 1; line-height: 1.6;">
@@ -1202,8 +1205,8 @@
 
           <!-- Card 3: Ibrido -->
           <div class="card card-hover fade-up" style="padding: 32px; display: flex; flex-direction: column; gap: 16px; background: rgba(20, 184, 166, 0.05); border-color: rgba(20, 184, 166, 0.25); transition-delay:0.2s;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(20, 184, 166, 0.15); color: var(--teal); font-size: 24px;">
-              ⚡
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 28px; background: rgba(20, 184, 166, 0.15); color: var(--teal); overflow: hidden; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);">
+              <img src="../immagini_sito/icona_modello%20ibrido.png" alt="Modello Ibrido" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1);" />
             </div>
             <h3 style="font-size: 20px; font-weight: 700; color: #fff;">3. Il Modello Ibrido (Novità)</h3>
             <p style="color: var(--muted); font-size: 14px; flex-grow: 1; line-height: 1.6;">
@@ -1231,28 +1234,8 @@
           <div class="step-line"></div>
           <div class="step-card fade-up">
             <div class="step-card-glow" style="background:rgba(6,182,212,0.3);"></div>
-            <div class="step-icon-wrap icon-cyan">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <defs>
-                  <linearGradient id="cyan-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#06b6d4" />
-                    <stop offset="100%" stop-color="#0891b2" />
-                  </linearGradient>
-                  <linearGradient id="white-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                  </linearGradient>
-                </defs>
-                <rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="url(#white-grad-step)" stroke-width="2" />
-                <line x1="16" y1="2" x2="16" y2="6" stroke="url(#cyan-grad-step)" stroke-width="2" stroke-linecap="round" />
-                <line x1="8" y1="2" x2="8" y2="6" stroke="url(#cyan-grad-step)" stroke-width="2" stroke-linecap="round" />
-                <line x1="3" y1="9" x2="21" y2="9" stroke="url(#white-grad-step)" stroke-width="1.5" stroke-opacity="0.5" />
-                <rect x="6" y="12" width="2" height="2" rx="0.5" fill="url(#white-grad-step)" fill-opacity="0.5" />
-                <rect x="11" y="12" width="2" height="2" rx="0.5" fill="url(#cyan-grad-step)" />
-                <rect x="6" y="16" width="2" height="2" rx="0.5" fill="url(#white-grad-step)" fill-opacity="0.5" />
-                <circle cx="17" cy="17" r="4.5" fill="#020617" stroke="url(#cyan-grad-step)" stroke-width="1.5" />
-                <path d="M17 15v2h2" stroke="url(#cyan-grad-step)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+            <div class="step-icon-wrap icon-cyan" style="width: 120px !important; height: 120px !important; border-radius: 28px !important;">
+              <img src="../immagini_sito/sezione_2/icona_prenotazione_gpt.png" alt="Prenotazione online" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 28px;" />
             </div>
             <div class="step-number">01</div>
             <div class="step-title">Prenotazione online</div>
@@ -1260,29 +1243,8 @@
           </div>
           <div class="step-card fade-up" style="transition-delay:0.1s">
             <div class="step-card-glow" style="background:rgba(20,184,166,0.3);"></div>
-            <div class="step-icon-wrap icon-amber">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <defs>
-                  <linearGradient id="amber-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#f59e0b" />
-                    <stop offset="100%" stop-color="#d97706" />
-                  </linearGradient>
-                  <linearGradient id="gold-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#fbbf24" />
-                    <stop offset="100%" stop-color="#f59e0b" />
-                  </linearGradient>
-                  <linearGradient id="card-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
-                    <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
-                  </linearGradient>
-                </defs>
-                <rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="url(#card-grad-step)" stroke-width="2" />
-                <line x1="2" y1="9" x2="22" y2="9" stroke="url(#card-grad-step)" stroke-width="1.5" stroke-opacity="0.4" />
-                <rect x="5" y="12" width="3.5" height="2.5" rx="0.5" fill="url(#amber-grad-step)" />
-                <circle cx="16" cy="14" r="5" fill="#020617" stroke="url(#gold-grad-step)" stroke-width="1.5" />
-                <circle cx="16" cy="14" r="3" fill="url(#gold-grad-step)" />
-                <path d="M16 12.5c-.3 0-.5.2-.5.5s.2.5.5.5.5-.2.5-.5-.2-.5-.5-.5zm-1.2.7c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm2.4 0c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm-1.2 1.4c-.6 0-1 .4-1 .9 0 .4.3.7.7.7h.6c.4 0 .7-.3.7-.7 0-.5-.4-.9-1-.9z" fill="#020617" />
-              </svg>
+            <div class="step-icon-wrap icon-amber" style="width: 120px !important; height: 120px !important; border-radius: 28px !important;">
+              <img src="../immagini_sito/sezione_2/icona_pagamenti_crediti_GPT.png" alt="Pagamento con crediti" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 28px;" />
             </div>
             <div class="step-number">02</div>
             <div class="step-title">Pagamento con crediti</div>
@@ -1290,31 +1252,8 @@
           </div>
           <div class="step-card fade-up" style="transition-delay:0.2s">
             <div class="step-card-glow" style="background:rgba(245,158,11,0.25);"></div>
-            <div class="step-icon-wrap icon-teal">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <defs>
-                  <linearGradient id="teal-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#14b8a6" />
-                    <stop offset="100%" stop-color="#0f766e" />
-                  </linearGradient>
-                  <linearGradient id="white-qr-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                  </linearGradient>
-                </defs>
-                <path d="M5 3H3v2m16-2h2v2M3 19v2h2m16-2v2h-2" stroke="url(#white-qr-step)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                <rect x="6" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#teal-grad-step)" stroke-width="1.5" />
-                <rect x="7" y="7" width="2" height="2" fill="url(#teal-grad-step)" />
-                <rect x="14" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-step)" stroke-width="1.5" />
-                <rect x="15" y="7" width="2" height="2" fill="url(#white-qr-step)" />
-                <rect x="6" y="14" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-step)" stroke-width="1.5" />
-                <rect x="7" y="14" width="2" height="2" fill="url(#white-qr-step)" />
-                <rect x="14" y="14" width="1.5" height="1.5" fill="url(#teal-grad-step)" />
-                <rect x="16" y="14" width="1.5" height="1.5" fill="url(#white-qr-step)" fill-opacity="0.6" />
-                <rect x="14" y="16" width="1.5" height="1.5" fill="url(#white-qr-step)" fill-opacity="0.6" />
-                <rect x="16" y="16" width="2" height="2" fill="url(#teal-grad-step)" />
-                <line x1="2" y1="12" x2="22" y2="12" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" />
-              </svg>
+            <div class="step-icon-wrap icon-teal" style="width: 120px !important; height: 120px !important; border-radius: 28px !important;">
+              <img src="../immagini_sito/sezione_2/icona_check-in_QR_gpt.png" alt="Check-in con QR" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 28px;" />
             </div>
             <div class="step-number">03</div>
             <div class="step-title">Check-in con QR</div>
@@ -1322,24 +1261,8 @@
           </div>
           <div class="step-card fade-up" style="transition-delay:0.3s">
             <div class="step-card-glow" style="background:rgba(16,185,129,0.25);"></div>
-            <div class="step-icon-wrap icon-emerald">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <defs>
-                  <linearGradient id="emerald-grad-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#10b981" />
-                    <stop offset="100%" stop-color="#047857" />
-                  </linearGradient>
-                  <linearGradient id="white-timer-step" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                    <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                  </linearGradient>
-                </defs>
-                <circle cx="12" cy="13" r="8" fill="none" stroke="url(#white-timer-step)" stroke-width="2" />
-                <path d="M12 5V2m-3 1h6" stroke="url(#white-timer-step)" stroke-width="2" stroke-linecap="round" />
-                <path d="M18 6l1.5-1.5" stroke="url(#white-timer-step)" stroke-width="1.5" stroke-linecap="round" />
-                <path d="M12 13l3.5-3.5" stroke="url(#white-timer-step)" stroke-width="1.5" stroke-opacity="0.5" stroke-linecap="round" />
-                <path d="M13 9.5l-3.5 4.5h3l-.5 3.5 3.5-4.5h-3z" fill="url(#emerald-grad-step)" />
-              </svg>
+            <div class="step-icon-wrap icon-emerald" style="width: 120px !important; height: 120px !important; border-radius: 28px !important;">
+              <img src="../immagini_sito/sezione_2/icona_monitoraggio_postazione_gpt.png" alt="Sessione live + kiosk" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 28px;" />
             </div>
             <div class="step-number">04</div>
             <div class="step-title">Sessione live + kiosk</div>
@@ -1360,28 +1283,8 @@
         <div class="features-grid">
           <div class="feature-card wide fade-up">
             <div class="feature-top">
-              <div class="feature-icon icon-cyan">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="cyan-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#06b6d4" />
-                      <stop offset="100%" stop-color="#0891b2" />
-                    </linearGradient>
-                    <linearGradient id="white-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="url(#white-grad-f)" stroke-width="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" stroke="url(#cyan-grad-f)" stroke-width="2" stroke-linecap="round" />
-                  <line x1="8" y1="2" x2="8" y2="6" stroke="url(#cyan-grad-f)" stroke-width="2" stroke-linecap="round" />
-                  <line x1="3" y1="9" x2="21" y2="9" stroke="url(#white-grad-f)" stroke-width="1.5" stroke-opacity="0.5" />
-                  <rect x="6" y="12" width="2" height="2" rx="0.5" fill="url(#white-grad-f)" fill-opacity="0.5" />
-                  <rect x="11" y="12" width="2" height="2" rx="0.5" fill="url(#cyan-grad-f)" />
-                  <rect x="6" y="16" width="2" height="2" rx="0.5" fill="url(#white-grad-f)" fill-opacity="0.5" />
-                  <circle cx="17" cy="17" r="4.5" fill="#020617" stroke="url(#cyan-grad-f)" stroke-width="1.5" />
-                  <path d="M17 15v2h2" stroke="url(#cyan-grad-f)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+              <div class="feature-icon icon-cyan" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_prenotazione.png" alt="Prenotazioni" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Prenotazioni</span>
             </div>
@@ -1395,29 +1298,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.08s">
             <div class="feature-top">
-              <div class="feature-icon icon-amber">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="amber-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#f59e0b" />
-                      <stop offset="100%" stop-color="#d97706" />
-                    </linearGradient>
-                    <linearGradient id="gold-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#fbbf24" />
-                      <stop offset="100%" stop-color="#f59e0b" />
-                    </linearGradient>
-                    <linearGradient id="card-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
-                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
-                    </linearGradient>
-                  </defs>
-                  <rect x="2" y="5" width="20" height="14" rx="3" fill="none" stroke="url(#card-grad-f)" stroke-width="2" />
-                  <line x1="2" y1="9" x2="22" y2="9" stroke="url(#card-grad-f)" stroke-width="1.5" stroke-opacity="0.4" />
-                  <rect x="5" y="12" width="3.5" height="2.5" rx="0.5" fill="url(#amber-grad-f)" />
-                  <circle cx="16" cy="14" r="5" fill="#020617" stroke="url(#gold-grad-f)" stroke-width="1.5" />
-                  <circle cx="16" cy="14" r="3" fill="url(#gold-grad-f)" />
-                  <path d="M16 12.5c-.3 0-.5.2-.5.5s.2.5.5.5.5-.2.5-.5-.2-.5-.5-.5zm-1.2.7c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm2.4 0c-.2 0-.4.2-.4.4s.2.4.4.4.4-.2.4-.4-.2-.4-.4-.4zm-1.2 1.4c-.6 0-1 .4-1 .9 0 .4.3.7.7.7h.6c.4 0 .7-.3.7-.7 0-.5-.4-.9-1-.9z" fill="#020617" />
-                </svg>
+              <div class="feature-icon icon-amber" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_wallet.png" alt="Wallet" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Wallet</span>
             </div>
@@ -1426,31 +1308,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.16s">
             <div class="feature-top">
-              <div class="feature-icon icon-teal">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="teal-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#14b8a6" />
-                      <stop offset="100%" stop-color="#0f766e" />
-                    </linearGradient>
-                    <linearGradient id="white-qr-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M5 3H3v2m16-2h2v2M3 19v2h2m16-2v2h-2" stroke="url(#white-qr-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  <rect x="6" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#teal-grad-f)" stroke-width="1.5" />
-                  <rect x="7" y="7" width="2" height="2" fill="url(#teal-grad-f)" />
-                  <rect x="14" y="6" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-f)" stroke-width="1.5" />
-                  <rect x="15" y="7" width="2" height="2" fill="url(#white-qr-f)" />
-                  <rect x="6" y="14" width="4" height="4" rx="0.5" fill="none" stroke="url(#white-qr-f)" stroke-width="1.5" />
-                  <rect x="7" y="14" width="2" height="2" fill="url(#white-qr-f)" />
-                  <rect x="14" y="14" width="1.5" height="1.5" fill="url(#teal-grad-f)" />
-                  <rect x="16" y="14" width="1.5" height="1.5" fill="url(#white-qr-f)" fill-opacity="0.6" />
-                  <rect x="14" y="16" width="1.5" height="1.5" fill="url(#white-qr-f)" fill-opacity="0.6" />
-                  <rect x="16" y="16" width="2" height="2" fill="url(#teal-grad-f)" />
-                  <line x1="2" y1="12" x2="22" y2="12" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" />
-                </svg>
+              <div class="feature-icon icon-teal" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_QR-code.png" alt="Check-in" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Check-in</span>
             </div>
@@ -1459,31 +1318,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.24s">
             <div class="feature-top">
-              <div class="feature-icon icon-blue">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="blue-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#3b82f6" />
-                      <stop offset="100%" stop-color="#1d4ed8" />
-                    </linearGradient>
-                    <linearGradient id="chart-area-f" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4" />
-                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-                    </linearGradient>
-                    <linearGradient id="white-dash-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
-                    </linearGradient>
-                  </defs>
-                  <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="url(#white-dash-f)" stroke-width="2" />
-                  <line x1="2" y1="8" x2="22" y2="8" stroke="url(#white-dash-f)" stroke-width="1.5" stroke-opacity="0.4" />
-                  <circle cx="5" cy="6" r="0.75" fill="#ef4444" />
-                  <circle cx="7" cy="6" r="0.75" fill="#f59e0b" />
-                  <circle cx="9" cy="6" r="0.75" fill="#10b981" />
-                  <path d="M5 16l4-4 4 2 6-6v8H5z" fill="url(#chart-area-f)" />
-                  <path d="M5 16l4-4 4 2 6-6" fill="none" stroke="url(#blue-grad-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  <circle cx="19" cy="8" r="1.5" fill="url(#blue-grad-f)" />
-                </svg>
+              <div class="feature-icon icon-blue" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Dashboard_Admin_Completa.png" alt="Admin" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Admin</span>
             </div>
@@ -1492,24 +1328,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.08s">
             <div class="feature-top">
-              <div class="feature-icon icon-emerald">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="emerald-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#10b981" />
-                      <stop offset="100%" stop-color="#047857" />
-                    </linearGradient>
-                    <linearGradient id="white-timer-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="12" cy="13" r="8" fill="none" stroke="url(#white-timer-f)" stroke-width="2" />
-                  <path d="M12 5V2m-3 1h6" stroke="url(#white-timer-f)" stroke-width="2" stroke-linecap="round" />
-                  <path d="M18 6l1.5-1.5" stroke="url(#white-timer-f)" stroke-width="1.5" stroke-linecap="round" />
-                  <path d="M12 13l3.5-3.5" stroke="url(#white-timer-f)" stroke-width="1.5" stroke-opacity="0.5" stroke-linecap="round" />
-                  <path d="M13 9.5l-3.5 4.5h3l-.5 3.5 3.5-4.5h-3z" fill="url(#emerald-grad-f)" />
-                </svg>
+              <div class="feature-icon icon-emerald" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Sessioni_Live_con_Timer.png" alt="Sessioni" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Sessioni</span>
             </div>
@@ -1518,29 +1338,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.16s">
             <div class="feature-top">
-              <div class="feature-icon icon-pink">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="pink-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ec4899" />
-                      <stop offset="100%" stop-color="#be185d" />
-                    </linearGradient>
-                    <linearGradient id="ear-grad-f" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stop-color="#f472b6" />
-                      <stop offset="100%" stop-color="#ec4899" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="1.5" />
-                  <path d="M6 7.5c-.5-.8-1.5-.8-1.8.2-.5 1.5.2 4.3 1.3 5 .8.5 1.5-.5 1.5-1.5V9c0-1-.5-1.2-1-1.5z" fill="url(#ear-grad-f)" />
-                  <path d="M18 7.5c.5-.8 1.5-.8 1.8.2.5 1.5-.2 4.3-1.3 5-.8.5-1.5-.5-1.5-1.5V9c0-1 .5-1.2-1-1.5z" fill="url(#ear-grad-f)" />
-                  <path d="M7 11.5c0-2.5 2-4.5 5-4.5s5 2 5 4.5c0 2.2-1 3.5-2.5 4h-5C8 15 7 13.7 7 11.5z" fill="#ffffff" fill-opacity="0.9" />
-                  <circle cx="9.5" cy="11.5" r="1" fill="#020617" />
-                  <circle cx="14.5" cy="11.5" r="1" fill="#020617" />
-                  <ellipse cx="12" cy="14" rx="2" ry="1.5" fill="#f1f5f9" stroke="url(#pink-grad-f)" stroke-width="1" />
-                  <path d="M11 13.2h2c.2 0 .3.1.2.2l-.8.8a.4.4 0 0 1-.6 0l-.8-.8c-.1-.1 0-.2.2-.2z" fill="url(#pink-grad-f)" />
-                  <path d="M9 16.5h6l.5 1.5h-7z" fill="url(#pink-grad-f)" />
-                  <circle cx="12" cy="19" r="1" fill="#fbbf24" />
-                </svg>
+              <div class="feature-icon icon-pink" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Profili_Cane_Multi-Pet.png" alt="Profili" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Profili</span>
             </div>
@@ -1549,25 +1348,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.24s">
             <div class="feature-top">
-              <div class="feature-icon icon-rose">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="rose-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#f43f5e" />
-                      <stop offset="100%" stop-color="#be123c" />
-                    </linearGradient>
-                    <linearGradient id="white-rose-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M3 20h18" stroke="url(#white-rose-f)" stroke-width="2" stroke-linecap="round" />
-                  <rect x="5" y="13" width="3" height="7" rx="1" fill="url(#white-rose-f)" fill-opacity="0.5" />
-                  <rect x="10" y="9" width="3" height="11" rx="1" fill="url(#white-rose-f)" fill-opacity="0.75" />
-                  <rect x="15" y="5" width="3" height="15" rx="1" fill="url(#rose-grad-f)" />
-                  <path d="M4 17s3-4 6-4 5-5 8-7" fill="none" stroke="url(#rose-grad-f)" stroke-width="2" stroke-linecap="round" />
-                  <path d="M15 6h3v3" fill="none" stroke="url(#rose-grad-f)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+              <div class="feature-icon icon-rose" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Report_Analytics.png" alt="Report" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Report</span>
             </div>
@@ -1576,22 +1358,8 @@
           </div>
           <div class="feature-card fade-up" style="transition-delay:0.32s">
             <div class="feature-top">
-              <div class="feature-icon icon-violet">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="violet-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#8b5cf6" />
-                      <stop offset="100%" stop-color="#5b21b6" />
-                    </linearGradient>
-                    <linearGradient id="white-help-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M3 18c3 0 5-1 7-3s3.5-3 5-3c1.2 0 2.5.8 3 1.5l1.5-1c-1-1.5-3-2.5-4.5-2.5-2 0-3.5 1-5.5 3s-3.5 2-6.5 2h-1v3z" fill="url(#white-help-f)" />
-                  <path d="M15.5 5.5c-.4 0-.7.3-.7.7s.3.7.7.7.7-.3.7-.7-.3-.7-.7-.7zm-1.8.8c-.3 0-.6.3-.6.6s.3.6.6.6.6-.3.6-.6-.3-.6-.6-.6zm3.6 0c-.3 0-.6.3-.6.6s.3.6.6.6.6-.3.6-.6-.3-.6-.6-.6zm-1.8 1.9c-.8 0-1.4.6-1.4 1.3 0 .5.4 1 1 1h.8c.6 0 1-.5 1-1 0-.7-.6-1.3-1.4-1.3z" fill="url(#violet-grad-f)" />
-                  <path d="M21 4.5l-1 1 1 1 1-1zm-9 6l-.5.5.5.5.5-.5z" fill="url(#violet-grad-f)" />
-                </svg>
+              <div class="feature-icon icon-violet" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Sistema_Ibrido_Assistenza.png" alt="Ibrido" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Ibrido</span>
             </div>
@@ -1600,23 +1368,8 @@
           </div>
           <div class="feature-card wide fade-up" style="transition-delay:0.08s">
             <div class="feature-top">
-              <div class="feature-icon icon-blue">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="shield-grad-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#3b82f6" />
-                      <stop offset="100%" stop-color="#8b5cf6" />
-                    </linearGradient>
-                    <linearGradient id="white-lock-f" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
-                      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.6" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="url(#shield-grad-f)" stroke-width="2" stroke-linejoin="round" />
-                  <rect x="9" y="11" width="6" height="5" rx="1" fill="url(#white-lock-f)" />
-                  <path d="M10 11V9a2 2 0 0 1 4 0v2" stroke="url(#white-lock-f)" stroke-width="1.5" stroke-linecap="round" />
-                  <circle cx="12" cy="13.5" r="0.75" fill="#020617" />
-                </svg>
+              <div class="feature-icon icon-blue" style="width: 80px !important; height: 80px !important; border-radius: 20px !important;">
+                <img src="../immagini_sito/selezione_3/icona_Sicurezza_Enterprise.png" alt="Sicurezza" style="width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); border-radius: 20px;" />
               </div>
               <span class="feature-tag">Sicurezza</span>
             </div>
@@ -1994,9 +1747,14 @@
                   Richiedi una demo
                   <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
+                <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-size:11px;color:#94a3b8;line-height:1.4;cursor:pointer;">
+                  <input type="checkbox" id="cta-consent" style="margin-top:2px;accent-color:#0ea5e9;flex-shrink:0;" />
+                  Acconsento al trattamento dei dati personali ai sensi del <a href="privacy.html" style="color:#38bdf8;text-decoration:underline;" target="_blank">Regolamento Privacy</a> (GDPR UE 2016/679).
+                </label>
               </form>
               <div id="form-success">✅ Richiesta inviata! Ti contatteremo entro 24 ore.</div>
               <div id="form-error">⚠ Inserisci un indirizzo email valido.</div>
+              <div id="form-consent-error" style="display:none;color:#f59e0b;font-size:12px;margin-top:6px;">⚠ Devi accettare la Privacy Policy per inviare la richiesta.</div>
               <div class="form-note">Oppure scrivici a <a href="mailto:info@dogwash24.it">info@dogwash24.it</a></div>
             </div>
           </div>
@@ -2034,6 +1792,8 @@
               <a href="#roi">Calcolatore ROI</a>
               <a href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24">Richiedi una demo</a>
               <a href="mailto:info@dogwash24.it">Contattaci</a>
+              <a href="privacy.html">Privacy Policy</a>
+              <a href="privacy.html#cookies">Cookie Policy</a>
             </div>
           </div>
         </div>
@@ -2042,7 +1802,7 @@
         </div>
         <div class="footer-bottom">
           <span>© 2025 DogWash24. Tutti i diritti riservati.</span>
-          <span>Piattaforma SaaS per toelettatura self-service H24</span>
+          <span><a href="privacy.html" style="color:#64748b;text-decoration:underline;">Privacy Policy</a> · Piattaforma SaaS per toelettatura self-service H24</span>
         </div>
       </div>
     </footer>
@@ -2396,14 +2156,22 @@
     // ── FORM SUBMIT ───────────────────────────────────────────
     function submitForm(e) {
       e.preventDefault();
-      const email = document.getElementById('cta-email').value.trim();
-      const errorEl = document.getElementById('form-error');
-      const successEl = document.getElementById('form-success');
+      var email = document.getElementById('cta-email').value.trim();
+      var errorEl = document.getElementById('form-error');
+      var successEl = document.getElementById('form-success');
+      var consentEl = document.getElementById('cta-consent');
+      var consentErrorEl = document.getElementById('form-consent-error');
       errorEl.style.display = 'none';
       successEl.style.display = 'none';
+      if (consentErrorEl) consentErrorEl.style.display = 'none';
 
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errorEl.style.display = 'block';
+        return;
+      }
+
+      if (consentEl && !consentEl.checked) {
+        if (consentErrorEl) consentErrorEl.style.display = 'block';
         return;
       }
 

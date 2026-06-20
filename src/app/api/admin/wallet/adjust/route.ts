@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/admin/audit";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function isAdminUser(user: any) {
   return Boolean(user && user.app_metadata && user.app_metadata.role === "admin");
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
   const customerId = String(form.get("customer_id") ?? "");
   const amountRaw = String(form.get("amount_credits") ?? "");
   const reason = String(form.get("reason") ?? "").trim() || null;
-  const referer = request.headers.get("referer") ?? "/admin/clienti";
+  const referer = safeRedirectPath(request.headers.get("referer"), "/admin/clienti");
 
   const amount = Number(amountRaw.replace(",", "."));
   if (!customerId || !Number.isFinite(amount) || amount === 0) {

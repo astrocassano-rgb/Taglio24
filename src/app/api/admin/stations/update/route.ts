@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/admin/audit";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function isAdminUser(user: any) {
   return Boolean(user && user.app_metadata && user.app_metadata.role === "admin");
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   const yRaw = String(form.get("layout_y") ?? "");
   const wRaw = String(form.get("layout_w") ?? "");
   const hRaw = String(form.get("layout_h") ?? "");
-  const referer = request.headers.get("referer") ?? "/admin/postazioni";
+  const referer = safeRedirectPath(request.headers.get("referer"), "/admin/postazioni");
 
   const cost = Number(costRaw.replace(",", "."));
   const layoutX = Number(xRaw);

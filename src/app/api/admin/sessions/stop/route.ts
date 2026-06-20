@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/admin/audit";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 function isAdminUser(user: any) {
   return Boolean(user && user.app_metadata && user.app_metadata.role === "admin");
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   const contentType = request.headers.get("content-type") ?? "";
-  const referer = request.headers.get("referer") ?? "/admin/sessioni";
+  const referer = safeRedirectPath(request.headers.get("referer"), "/admin/sessioni");
   let sessionId = "";
 
   if (contentType.includes("application/json")) {

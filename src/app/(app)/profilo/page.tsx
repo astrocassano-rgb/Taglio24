@@ -35,14 +35,7 @@ export default async function ProfiloPage({ searchParams }: { searchParams?: Pro
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
 
-  // #region debug-point A:profile-server-user
-  void fetch("http://127.0.0.1:7777/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: "profile-auth-loop", runId: "post-fix", hypothesisId: "A", location: "src/app/(app)/profilo/page.tsx", msg: "[DEBUG] Profile page server auth state", data: { hasUser: Boolean(user), userId: user?.id ?? null, email: user?.email ?? null }, ts: Date.now() }) }).catch(() => {});
-  // #endregion
-
   if (!user) {
-    // #region debug-point A:profile-server-redirect
-    void fetch("http://127.0.0.1:7777/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: "profile-auth-loop", runId: "post-fix", hypothesisId: "A", location: "src/app/(app)/profilo/page.tsx", msg: "[DEBUG] Profile page redirecting to login", data: { target: "/login?next=%2Fprofilo" }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
     redirect("/login?next=%2Fprofilo");
   }
 

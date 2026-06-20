@@ -4,7 +4,6 @@ import type { Database } from "./src/types/database";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
-  const traceId = crypto.randomUUID();
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,14 +30,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/profilo") ||
     request.nextUrl.pathname.startsWith("/prenotazioni");
 
-  // #region debug-point B:middleware-auth-state
-  void fetch("http://127.0.0.1:7777/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: "profile-auth-loop", runId: "post-fix", hypothesisId: "B", location: "middleware.ts", traceId, msg: "[DEBUG] Middleware auth state", data: { pathname: request.nextUrl.pathname, search: request.nextUrl.search, isProtectedRoute, isAdminRoute, hasUser: Boolean(user), userId: user?.id ?? null, cookieNames: request.cookies.getAll().map((cookie) => cookie.name) }, ts: Date.now() }) }).catch(() => {});
-  // #endregion
-
   if ((isProtectedRoute || isAdminRoute) && !user) {
-    // #region debug-point B:middleware-redirect-login
-    void fetch("http://127.0.0.1:7777/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: "profile-auth-loop", runId: "post-fix", hypothesisId: "B", location: "middleware.ts", traceId, msg: "[DEBUG] Middleware redirecting to login", data: { pathname: request.nextUrl.pathname, search: request.nextUrl.search }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
@@ -60,11 +52,7 @@ export async function middleware(request: NextRequest) {
     const nextPath = request.nextUrl.searchParams.get('next');
     const targetUrl = request.nextUrl.clone();
 
-    // #region debug-point C:middleware-login-bounce
-    void fetch("http://127.0.0.1:7777/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: "profile-auth-loop", runId: "post-fix", hypothesisId: "C", location: "middleware.ts", traceId, msg: "[DEBUG] Middleware bouncing logged-in user away from login", data: { pathname: request.nextUrl.pathname, nextPath, userId: user.id }, ts: Date.now() }) }).catch(() => {});
-    // #endregion
-
-    if (nextPath && nextPath.startsWith('/')) {
+    if (nextPath && nextPath.startsWith('/') && !nextPath.startsWith('//')) {
       const nextUrl = new URL(nextPath, request.url);
       targetUrl.pathname = nextUrl.pathname;
       targetUrl.search = nextUrl.search;
