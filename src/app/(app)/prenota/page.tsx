@@ -596,7 +596,9 @@ export default function PrenotaPage() {
           Disponibilità H24
         </h2>
         <p className="text-sm leading-relaxed text-slate-400">
-          Seleziona il cane, il servizio, la data ed infine l&apos;orario desiderato per bloccare il tuo slot.
+          {isLogged
+            ? "Seleziona il cane, il servizio, la data ed infine l'orario desiderato per bloccare il tuo slot."
+            : "Visualizza gli orari e le disponibilità delle nostre postazioni in tempo reale."}
         </p>
       </header>
 
@@ -667,201 +669,207 @@ export default function PrenotaPage() {
         </Card>
       )}
 
-      {/* --- STEP 2: MODALITÀ DI LAVAGGIO --- */}
-      <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
-        <div className="space-y-0.5 text-left">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Tipo Servizio</p>
-          <p className="text-sm font-semibold text-slate-200">Come desideri lavare il tuo cane?</p>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-1">
-          {/* Opzione Self-Service */}
-          {(!settings || settings.mode !== "ASSISTED_ONLY") && (
-            <button
-              type="button"
-              onClick={() => setServiceType("SELF_SERVICE")}
-              className={cn(
-                "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
-                serviceType === "SELF_SERVICE"
-                  ? "bg-cyan-500/10 ring-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.08)]"
-                  : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
-              )}
-            >
-              <div className="flex items-start justify-between w-full">
-                <div className={cn(
-                  "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
-                  serviceType === "SELF_SERVICE" ? "bg-cyan-500/20 ring-cyan-400/30 text-cyan-200" : "bg-slate-900 ring-slate-850 text-slate-400"
-                )}>
-                  <PawPrint className="h-4 w-4" />
-                </div>
-                <div className={cn(
-                  "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
-                  serviceType === "SELF_SERVICE" ? "bg-cyan-500 border-cyan-400" : "border-slate-700 bg-slate-950"
-                )}>
-                  {serviceType === "SELF_SERVICE" && <Check className="h-2.5 w-2.5 text-white" />}
-                </div>
-              </div>
-              <div className="mt-3 text-left">
-                <p className="text-xs font-bold text-slate-100">Self-Service H24</p>
-                <p className="text-[10px] text-slate-450 mt-1 leading-normal">
-                  Lavi tu il tuo cane in autonomia usando le nostre attrezzature. Paga solo il tempo della vasca.
-                </p>
-              </div>
-            </button>
-          )}
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            {/* Opzione Assistito */}
-            {(!settings || settings.mode !== "SELF_ONLY") && settings?.enable_assisted_wash && (
-              <button
-                type="button"
-                onClick={() => setServiceType("ASSISTED_WASH")}
-                className={cn(
-                  "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
-                  serviceType === "ASSISTED_WASH"
-                    ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
-                    : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
-                )}
-              >
-                <div className="flex items-start justify-between w-full">
-                  <div className={cn(
-                    "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
-                    serviceType === "ASSISTED_WASH" ? "bg-blue-500/20 ring-blue-400/30 text-blue-200" : "bg-slate-900 ring-slate-850 text-slate-400"
-                  )}>
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold text-blue-350 ring-1 ring-inset ring-blue-500/30">
-                      +{settings.price_assisted_wash_credits} crediti
-                    </span>
-                    <div className={cn(
-                      "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
-                      serviceType === "ASSISTED_WASH" ? "bg-blue-500 border-blue-400" : "border-slate-700 bg-slate-950"
-                    )}>
-                      {serviceType === "ASSISTED_WASH" && <Check className="h-2.5 w-2.5 text-white" />}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 text-left">
-                  <p className="text-xs font-bold text-slate-100">Lavaggio Assistito</p>
-                  <p className="text-[10px] text-slate-450 mt-1 leading-normal">
-                    Ti aiutiamo a lavare e asciugare il cane.
-                  </p>
-                </div>
-              </button>
-            )}
-
-            {/* Opzione Full Grooming */}
-            {(!settings || settings.mode !== "SELF_ONLY") && settings?.enable_full_grooming && (
-              <button
-                type="button"
-                onClick={() => setServiceType("FULL_GROOMING")}
-                className={cn(
-                  "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
-                  serviceType === "FULL_GROOMING"
-                    ? "bg-fuchsia-500/10 ring-fuchsia-500/30 shadow-[0_0_12px_rgba(217,70,239,0.08)]"
-                    : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
-                )}
-              >
-                <div className="flex items-start justify-between w-full">
-                  <div className={cn(
-                    "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
-                    serviceType === "FULL_GROOMING" ? "bg-fuchsia-500/20 ring-fuchsia-400/30 text-fuchsia-200" : "bg-slate-900 ring-slate-850 text-slate-400"
-                  )}>
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[8px] font-bold text-fuchsia-350 ring-1 ring-inset ring-fuchsia-500/30">
-                      +{settings.price_full_grooming_credits} crediti
-                    </span>
-                    <div className={cn(
-                      "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
-                      serviceType === "FULL_GROOMING" ? "bg-fuchsia-500 border-fuchsia-400" : "border-slate-700 bg-slate-950"
-                    )}>
-                      {serviceType === "FULL_GROOMING" && <Check className="h-2.5 w-2.5 text-white" />}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 text-left">
-                  <p className="text-xs font-bold text-slate-100">Toelettatura Completa</p>
-                  <p className="text-[10px] text-slate-450 mt-1 leading-normal">
-                    Lascio il cane (Drop-off). Penseremo a tutto noi.
-                  </p>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* --- SELEZIONE SERVIZI --- */}
-      <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
-        <div className="flex items-center justify-between">
+      {/* --- STEP 2: MODALITÀ DI LAVAGGIO (Solo se loggato) --- */}
+      {isLogged && (
+        <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
           <div className="space-y-0.5 text-left">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">3. Servizi</p>
-            <p className="text-sm font-semibold text-slate-200">Scegli i trattamenti</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Tipo Servizio</p>
+            <p className="text-sm font-semibold text-slate-200">Come desideri lavare il tuo cane?</p>
           </div>
-          <Button
-            variant="ghost"
-            size="md"
-            className="h-9 w-9 p-0 rounded-xl hover:bg-slate-800/50 cursor-pointer"
-            onClick={() => void loadAvailability()}
-            disabled={loading}
-            aria-label="Aggiorna disponibilità"
-          >
-            <RefreshCw className={cn("h-4 w-4 text-slate-300", loading && "animate-spin")} />
-          </Button>
-        </div>
 
-        <div className="grid gap-2">
-          {serviceOptions.map(({ value, label, subtitle, Icon }) => {
-            const selected = selectedServices.includes(value);
-            return (
+          <div className="grid gap-2 sm:grid-cols-1">
+            {/* Opzione Self-Service */}
+            {(!settings || settings.mode !== "ASSISTED_ONLY") && (
               <button
-                key={value}
                 type="button"
-                onClick={() => toggleService(value)}
+                onClick={() => setServiceType("SELF_SERVICE")}
                 className={cn(
-                  "rounded-2xl p-3 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex w-full items-center gap-3",
-                  selected
-                    ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                  "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
+                  serviceType === "SELF_SERVICE"
+                    ? "bg-cyan-500/10 ring-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.08)]"
                     : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
                 )}
               >
-                <div className={cn(
-                  "rounded-xl p-2.5 ring-1 ring-inset transition-colors shrink-0",
-                  selected ? "bg-blue-500/20 ring-blue-400/30" : "bg-slate-900 ring-slate-850"
-                )}>
-                  <Icon className={cn("h-4 w-4", selected ? "text-blue-200" : "text-slate-300")} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                     <p className="text-sm font-bold text-slate-100">{label}</p>
-                    {selected && (
-                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
-                        Attivo
-                      </span>
-                    )}
+                <div className="flex items-start justify-between w-full">
+                  <div className={cn(
+                    "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
+                    serviceType === "SELF_SERVICE" ? "bg-cyan-500/20 ring-cyan-400/30 text-cyan-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+                  )}>
+                    <PawPrint className="h-4 w-4" />
                   </div>
-                  <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-1">{subtitle}</p>
+                  <div className={cn(
+                    "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                    serviceType === "SELF_SERVICE" ? "bg-cyan-500 border-cyan-400" : "border-slate-700 bg-slate-950"
+                  )}>
+                    {serviceType === "SELF_SERVICE" && <Check className="h-2.5 w-2.5 text-white" />}
+                  </div>
+                </div>
+                <div className="mt-3 text-left">
+                  <p className="text-xs font-bold text-slate-100">Self-Service H24</p>
+                  <p className="text-[10px] text-slate-450 mt-1 leading-normal">
+                    Lavi tu il tuo cane in autonomia usando le nostre attrezzature. Paga solo il tempo della vasca.
+                  </p>
                 </div>
               </button>
-            );
-          })}
-        </div>
+            )}
 
-        <div className="rounded-2xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800/80 text-xs text-slate-400 space-y-1 text-left">
-          <p className="font-semibold text-slate-300">Tempo stimato per i servizi scelti:</p>
-          <p className="text-slate-300">
-            <span className="text-blue-400 font-bold">{durationMinutes} minuti</span> ({getServiceSummary(selectedServices)})
-          </p>
-        </div>
-      </Card>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {/* Opzione Assistito */}
+              {(!settings || settings.mode !== "SELF_ONLY") && settings?.enable_assisted_wash && (
+                <button
+                  type="button"
+                  onClick={() => setServiceType("ASSISTED_WASH")}
+                  className={cn(
+                    "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
+                    serviceType === "ASSISTED_WASH"
+                      ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                      : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between w-full">
+                    <div className={cn(
+                      "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
+                      serviceType === "ASSISTED_WASH" ? "bg-blue-500/20 ring-blue-400/30 text-blue-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+                    )}>
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded-full bg-blue-500/20 px-1.5 py-0.5 text-[8px] font-bold text-blue-350 ring-1 ring-inset ring-blue-500/30">
+                        +{settings.price_assisted_wash_credits} crediti
+                      </span>
+                      <div className={cn(
+                        "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                        serviceType === "ASSISTED_WASH" ? "bg-blue-500 border-blue-400" : "border-slate-700 bg-slate-950"
+                      )}>
+                        {serviceType === "ASSISTED_WASH" && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-left">
+                    <p className="text-xs font-bold text-slate-100">Lavaggio Assistito</p>
+                    <p className="text-[10px] text-slate-450 mt-1 leading-normal">
+                      Ti aiutiamo a lavare e asciugare il cane.
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Opzione Full Grooming */}
+              {(!settings || settings.mode !== "SELF_ONLY") && settings?.enable_full_grooming && (
+                <button
+                  type="button"
+                  onClick={() => setServiceType("FULL_GROOMING")}
+                  className={cn(
+                    "rounded-2xl p-4 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex flex-col justify-between h-full min-h-[110px]",
+                    serviceType === "FULL_GROOMING"
+                      ? "bg-fuchsia-500/10 ring-fuchsia-500/30 shadow-[0_0_12px_rgba(217,70,239,0.08)]"
+                      : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+                  )}
+                >
+                  <div className="flex items-start justify-between w-full">
+                    <div className={cn(
+                      "rounded-xl p-2 ring-1 ring-inset transition-colors shrink-0",
+                      serviceType === "FULL_GROOMING" ? "bg-fuchsia-500/20 ring-fuchsia-400/30 text-fuchsia-200" : "bg-slate-900 ring-slate-850 text-slate-400"
+                    )}>
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[8px] font-bold text-fuchsia-350 ring-1 ring-inset ring-fuchsia-500/30">
+                        +{settings.price_full_grooming_credits} crediti
+                      </span>
+                      <div className={cn(
+                        "h-4 w-4 rounded-full border flex items-center justify-center transition-all",
+                        serviceType === "FULL_GROOMING" ? "bg-fuchsia-500 border-fuchsia-400" : "border-slate-700 bg-slate-950"
+                      )}>
+                        {serviceType === "FULL_GROOMING" && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-left">
+                    <p className="text-xs font-bold text-slate-100">Toelettatura Completa</p>
+                    <p className="text-[10px] text-slate-450 mt-1 leading-normal">
+                      Lascio il cane (Drop-off). Penseremo a tutto noi.
+                    </p>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* --- SELEZIONE SERVIZI (Solo se loggato) --- */}
+      {isLogged && (
+        <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5 text-left">
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-400">3. Servizi</p>
+              <p className="text-sm font-semibold text-slate-200">Scegli i trattamenti</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="md"
+              className="h-9 w-9 p-0 rounded-xl hover:bg-slate-800/50 cursor-pointer"
+              onClick={() => void loadAvailability()}
+              disabled={loading}
+              aria-label="Aggiorna disponibilità"
+            >
+              <RefreshCw className={cn("h-4 w-4 text-slate-300", loading && "animate-spin")} />
+            </Button>
+          </div>
+
+          <div className="grid gap-2">
+            {serviceOptions.map(({ value, label, subtitle, Icon }) => {
+              const selected = selectedServices.includes(value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => toggleService(value)}
+                  className={cn(
+                    "rounded-2xl p-3 text-left ring-1 ring-inset transition-all duration-200 cursor-pointer flex w-full items-center gap-3",
+                    selected
+                      ? "bg-blue-500/10 ring-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
+                      : "bg-slate-950/40 ring-slate-800/80 hover:bg-slate-900/40"
+                  )}
+                >
+                  <div className={cn(
+                    "rounded-xl p-2.5 ring-1 ring-inset transition-colors shrink-0",
+                    selected ? "bg-blue-500/20 ring-blue-400/30" : "bg-slate-900 ring-slate-850"
+                  )}>
+                    <Icon className={cn("h-4 w-4", selected ? "text-blue-200" : "text-slate-300")} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                       <p className="text-sm font-bold text-slate-100">{label}</p>
+                      {selected && (
+                        <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
+                          Attivo
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-slate-400 line-clamp-1">{subtitle}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-2xl bg-slate-950/50 p-3 ring-1 ring-inset ring-slate-800/80 text-xs text-slate-400 space-y-1 text-left">
+            <p className="font-semibold text-slate-300">Tempo stimato per i servizi scelti:</p>
+            <p className="text-slate-300">
+              <span className="text-blue-400 font-bold">{durationMinutes} minuti</span> ({getServiceSummary(selectedServices)})
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* --- SELEZIONE CALENDARIO --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">4. Data Prenotazione</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">
+            {isLogged ? "4. Data Prenotazione" : "Data Disponibilità"}
+          </p>
           <p className="text-xs text-slate-400 font-semibold">{selectedPreviewDay?.label ?? "—"}</p>
         </div>
 
@@ -951,7 +959,9 @@ export default function PrenotaPage() {
       {/* --- GRIGLIA DEGLI ORARI --- */}
       <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-4">
         <div className="space-y-1 text-left">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">5. Orari del giorno</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">
+            {isLogged ? "5. Orari del giorno" : "Orari del giorno"}
+          </p>
           <p className="text-sm font-semibold text-slate-200">Seleziona la fascia oraria di interesse:</p>
         </div>
 
