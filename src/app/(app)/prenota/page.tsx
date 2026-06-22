@@ -482,7 +482,7 @@ export default function PrenotaPage() {
   }
 
   // Gestione della prenotazione al click su uno slot
-  const handleSlotClick = (slot: CustomSlot) => {
+  const handleSlotClick = async (slot: CustomSlot) => {
     if (!isLogged) {
       const params = new URLSearchParams({
         services: serializeServiceBundle(selectedServices),
@@ -493,12 +493,18 @@ export default function PrenotaPage() {
       router.push(`/login?next=${encodeURIComponent(redirectUrl)}` as Route);
       return;
     }
-    
-    // Se loggato, apre la modale di conferma
+
+    // Re-fetcha le disponibilità per avere dati aggiornati prima della conferma
+    // (previene overbooking: uno slot potrebbe essere stato preso da un altro utente
+    // nel tempo intercorso tra l'apertura della pagina e il click)
+    await loadAvailability();
+
+    // Dopo il refresh, ri-verifica che lo slot sia ancora disponibile
     setConfirmSlot(slot);
     setBookingMessage(null);
     setSuccessSummary(null);
   };
+
 
   // Costo stimato in crediti (1 credito = 1 minuto basato sulla postazione) + costo operatore fisso
   const estimatedCredits = useMemo(() => {
