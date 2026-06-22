@@ -528,24 +528,33 @@ export default function PrenotaPage() {
     return balanceCredits >= estimatedCredits;
   }, [balanceCredits, estimatedCredits]);
 
-  // Conferma effettiva tramite chiamata RPC a Supabase
+  // Conferma effettiva tramite API route server-side
+  // (workaround per il bug PostgreSQL "column reference total_credits is ambiguous"
+  //  nella funzione RPC create_booking — da rimuovere dopo migrazione 0020)
   const handleConfirmBooking = async () => {
     const currentUserId = userId;
     if (!supabase || !confirmSlot || !selectedDogId || !currentUserId || submitting) return;
     setSubmitting(true);
     setBookingMessage(null);
     try {
-      const args = {
-        p_station_id: confirmSlot.stationId,
-        p_dog_id: selectedDogId,
-        p_start_time: confirmSlot.start.toISOString(),
-        p_end_time: confirmSlot.end.toISOString(),
-        p_service_type: serviceType
-      } as Database["public"]["Functions"]["create_booking"]["Args"];
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p_station_id: confirmSlot.stationId,
+          p_dog_id: selectedDogId,
+          p_start_time: confirmSlot.start.toISOString(),
+          p_end_time: confirmSlot.end.toISOString(),
+          p_service_type: serviceType,
+        }),
+      });
 
-      const { data, error } = await supabase.rpc("create_booking", args);
-      if (error) throw error;
-      
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.error ?? "Errore durante la prenotazione.");
+      }
+
+      const data: Array<{ booking_id: string; total_credits: number; status: string }> = json;
       const first = data?.[0];
       setSuccessSummary(
         first
@@ -582,6 +591,7 @@ export default function PrenotaPage() {
       setSubmitting(false);
     }
   };
+
 
   if (!isConfigured) {
     return (
