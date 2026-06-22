@@ -1,33 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
+import type { Database } from "@/types/database";
 
 // POST /api/bookings — alternativa a RPC create_booking
-// Usato come workaround per il bug "column reference total_credits is ambiguous"
-// presente nella funzione PostgreSQL create_booking (migrations 0015-0019).
-// Esegue la stessa logica lato server usando il client admin (service_role).
+// Workaround per il bug "column reference total_credits is ambiguous"
+// nella funzione PostgreSQL create_booking (migrations 0015-0019).
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { p_station_id, p_dog_id, p_start_time, p_end_time, p_service_type = "SELF_SERVICE" } = body;
 
-    // Validazione input
     if (!p_station_id || !p_dog_id || !p_start_time || !p_end_time) {
       return NextResponse.json({ error: "Parametri mancanti" }, { status: 400 });
     }
 
-    // ① Ottieni l'utente autenticato dalla sessione cookie
+    // ① Ottieni utente autenticato dalla sessione cookie
     const supabaseUser = await createSupabaseServerClient();
-
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
     }
     const userId = user.id;
 
-    // ② Client admin (bypassa RLS — service_role)
-    const admin = createSupabaseAdminClient();
+    // ② Client admin: legge process.env DIRETTAMENTE (evita cache getEnv())
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) {
+      console.error("[/api/bookings] Variabili Supabase mancanti:", { supabaseUrl: !!supabaseUrl, serviceKey: !!serviceKey });
+      return NextResponse.json({ error: "Configurazione server incompleta" }, { status: 500 });
+    }
+    const admin = createClient<Database>(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
 
     const startTime = new Date(p_start_time);
     const endTime = new Date(p_end_time);
