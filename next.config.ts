@@ -45,7 +45,7 @@ const nextConfig = {
         ]
       }
     ];
-  }
+  },
 };
 
 const withSerwist = withSerwistInit({

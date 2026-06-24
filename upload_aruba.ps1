@@ -42,6 +42,16 @@ $remoteDemoFile = "ftp://$ftpHost/$ftpDir/demo-home.html"
 Write-Host "Uploading demo-home.html..."
 $webclient.UploadFile($remoteDemoFile, $localDemoFile)
 
+# Upload extra marketing images for Bento Grid
+$extraImages = @("hero-station.png", "facility-map.png", "happy-dog.png")
+foreach ($img in $extraImages) {
+    $localImgFile = "C:\Users\info\Documents\cane\Toilettatura\marketing-aruba\$img"
+    $remoteImgFile = "ftp://$ftpHost/$ftpDir/$img"
+    Write-Host "Uploading $img to root on FTP..."
+    $webclient.UploadFile($remoteImgFile, $localImgFile)
+}
+
+
 
 # Create immagini_sito
 $dirUri = "ftp://$ftpHost/$ftpDir/immagini_sito/"
