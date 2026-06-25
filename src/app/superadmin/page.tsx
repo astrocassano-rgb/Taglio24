@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { requireSuperAdmin } from "@/lib/auth/require-superadmin";
@@ -180,6 +181,9 @@ export default async function SuperAdminDashboard() {
       </div>
     );
   } catch (err: any) {
+    if (isRedirectError(err)) {
+      throw err;
+    }
     return (
       <div className="p-8 max-w-xl mx-auto mt-10 rounded-2xl border border-rose-500/20 bg-rose-950/10 text-rose-200 relative z-50">
         <h3 className="text-lg font-bold mb-2">Errore di Rendering Superadmin</h3>
