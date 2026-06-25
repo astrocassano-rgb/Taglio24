@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/admin/audit";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -42,6 +43,6 @@ export async function POST(request: Request) {
   // Audit log
   await logAdminAction(user.id, "MANUAL_TOPUP", "wallet", customerId, { amount, reason });
 
-  return Response.redirect(referer, 303);
+  return NextResponse.redirect(new URL(referer, request.url), 303);
 }
 

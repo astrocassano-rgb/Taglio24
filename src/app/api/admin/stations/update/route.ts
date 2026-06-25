@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/admin/audit";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -83,5 +84,5 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   }
 
-  return Response.redirect(referer, 303);
+  return NextResponse.redirect(new URL(referer, request.url), 303);
 }
