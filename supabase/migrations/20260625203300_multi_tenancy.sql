@@ -508,7 +508,7 @@ BEGIN
        RAISE EXCEPTION 'Servizio Lavaggio Assistito non disponibile' USING errcode = 'P0001';
     END IF;
     v_operator_cost := v_price_assisted;
-  ELIF p_service_type = 'FULL_GROOMING' THEN
+  ELSIF p_service_type = 'FULL_GROOMING' THEN
     IF NOT v_enable_full THEN
        RAISE EXCEPTION 'Servizio Toelettatura Completa non disponibile' USING errcode = 'P0001';
     END IF;
