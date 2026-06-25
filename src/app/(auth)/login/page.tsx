@@ -18,11 +18,21 @@ export const dynamic = "force-dynamic";
 type AuthMode = "signin" | "signup";
 
 function resolvePostLoginPath(nextPath: string, user: { app_metadata?: { role?: string } } | null | undefined) {
-  if (nextPath !== "/") return nextPath;
   const role = user?.app_metadata?.role;
-  if (role === "superadmin") return "/superadmin";
-  if (role === "admin") return "/admin";
-  return "/";
+  
+  if (role === "superadmin") {
+    return nextPath.startsWith("/superadmin") ? nextPath : "/superadmin";
+  }
+  
+  if (role === "admin") {
+    return nextPath.startsWith("/admin") ? nextPath : "/admin";
+  }
+  
+  if (nextPath.startsWith("/admin") || nextPath.startsWith("/superadmin")) {
+    return "/";
+  }
+  
+  return nextPath;
 }
 
 function isProfileComplete(profile: { first_name: string | null; last_name: string | null; phone: string | null } | null | undefined) {
