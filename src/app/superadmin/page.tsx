@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { requireSuperAdmin } from "@/lib/auth/require-superadmin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getNetworkOverview, EXPIRING_SOON_DAYS, type TenantWithMetrics } from "@/lib/admin/metrics";
+import { getNetworkOverview, EXPIRING_SOON_DAYS, type TenantWithMetrics, getPlanPrice } from "@/lib/admin/metrics";
 import {
   Building,
   Users,
@@ -96,6 +96,53 @@ export default async function SuperAdminDashboard() {
           })}
         </div>
 
+        {/* Proiezione Ricavi Ricorrenti */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wider">Proiezioni Canoni Abbonamento (Saloni Attivi)</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="border-cyan-500/20 bg-cyan-950/10 backdrop-blur-md transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <span className="text-xs font-medium text-slate-400">Mensile Ricorrente (MRR)</span>
+                <div className="rounded-xl p-2.5 bg-cyan-500/15 text-cyan-300">
+                  <Euro className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-bold tracking-tight text-cyan-100">{eur.format(totals.mrr)}</p>
+                <p className="text-[10px] text-slate-500">Ricavi da canoni stimati al mese</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-indigo-500/20 bg-indigo-950/10 backdrop-blur-md transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <span className="text-xs font-medium text-slate-400">Stima Semestrale</span>
+                <div className="rounded-xl p-2.5 bg-indigo-500/15 text-indigo-300">
+                  <Euro className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-bold tracking-tight text-indigo-100">{eur.format(totals.semiannual)}</p>
+                <p className="text-[10px] text-slate-500">Proiezione canoni a 6 mesi</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-violet-500/20 bg-violet-950/10 backdrop-blur-md transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <span className="text-xs font-medium text-slate-400">Annuale Ricorrente (ARR)</span>
+                <div className="rounded-xl p-2.5 bg-violet-500/15 text-violet-300">
+                  <Euro className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-bold tracking-tight text-violet-100">{eur.format(totals.arr)}</p>
+                <p className="text-[10px] text-slate-500">Fatturato canoni stimato all&apos;anno</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Riquadro Alert: scaduti, in scadenza, senza admin */}
         {hasAlerts && (
           <div className="grid gap-4 lg:grid-cols-3">
@@ -145,6 +192,7 @@ export default async function SuperAdminDashboard() {
                     <th className="px-3 py-3 text-right">Prenotazioni</th>
                     <th className="px-3 py-3 text-right">Fatturato</th>
                     <th className="px-3 py-3 text-center">Admin</th>
+                    <th className="px-3 py-3 text-center">Piano</th>
                     <th className="px-3 py-3 text-center">Stato</th>
                     <th className="px-3 py-3 text-right">Azioni</th>
                   </tr>
@@ -174,6 +222,18 @@ export default async function SuperAdminDashboard() {
                         )}
                       </td>
                       <td className="px-3 py-3 text-center">
+                        {t.slug === "default" ? (
+                          <span className="text-xs text-slate-500">—</span>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-xs font-bold text-slate-200">{t.plan}</span>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              ({eur.format(getPlanPrice(t.plan))}/m)
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center">
                         <StatusBadge tenant={t} />
                       </td>
                       <td className="px-3 py-3 text-right">
@@ -188,7 +248,7 @@ export default async function SuperAdminDashboard() {
                   ))}
                   {tenants.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-sm text-slate-500">Nessun salone registrato al momento.</td>
+                      <td colSpan={8} className="py-8 text-center text-sm text-slate-500">Nessun salone registrato al momento.</td>
                     </tr>
                   )}
                 </tbody>

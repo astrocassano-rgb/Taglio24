@@ -56,6 +56,12 @@ export type NetworkOverview = {
     activeSessions: number;
     revenueEur: number;
     creditsSold: number;
+    /** Ricavi ricorrenti mensili (MRR) stimati dai piani dei saloni attivi. */
+    mrr: number;
+    /** Ricavi ricorrenti semestrali stimati. */
+    semiannual: number;
+    /** Ricavi ricorrenti annuali (ARR) stimati. */
+    arr: number;
   };
   alerts: {
     expired: TenantWithMetrics[];
@@ -64,6 +70,23 @@ export type NetworkOverview = {
     withoutAdmin: TenantWithMetrics[];
   };
 };
+
+/** Prezzi mensili predefiniti per ciascun tipo di piano commerciale. */
+export const PLAN_PRICES = {
+  LIGHT: 29,
+  PRO: 59,
+  ENTERPRISE: 149,
+} as const;
+
+export type PlanType = keyof typeof PLAN_PRICES;
+
+export function getPlanPrice(plan: string): number {
+  const cleanPlan = (plan || "").toUpperCase();
+  if (cleanPlan in PLAN_PRICES) {
+    return PLAN_PRICES[cleanPlan as PlanType];
+  }
+  return 0;
+}
 
 /** Numero di giorni entro cui un abbonamento è considerato "in scadenza". */
 export const EXPIRING_SOON_DAYS = 14;
@@ -158,6 +181,14 @@ export async function getNetworkOverview(admin: AdminClient): Promise<NetworkOve
     };
   });
 
+  // Calcolo MRR (Fatturato Ricorrente Mensile) dai piani dei saloni attivi (non scaduti e non di default)
+  let mrr = 0;
+  for (const t of tenantsWithMetrics) {
+    if (!t.isExpired && t.slug !== "default") {
+      mrr += getPlanPrice(t.plan);
+    }
+  }
+
   const totals = tenantsWithMetrics.reduce(
     (acc, t) => {
       acc.customers += t.metrics.customers;
@@ -168,7 +199,19 @@ export async function getNetworkOverview(admin: AdminClient): Promise<NetworkOve
       if (!t.isExpired) acc.activeTenants += 1;
       return acc;
     },
-    { tenants: tenantsWithMetrics.length, activeTenants: 0, customers: 0, uniqueCustomers, bookings: 0, activeSessions: 0, revenueEur: 0, creditsSold: 0 }
+    {
+      tenants: tenantsWithMetrics.length,
+      activeTenants: 0,
+      customers: 0,
+      uniqueCustomers,
+      bookings: 0,
+      activeSessions: 0,
+      revenueEur: 0,
+      creditsSold: 0,
+      mrr,
+      semiannual: mrr * 6,
+      arr: mrr * 12,
+    }
   );
 
   const alerts = {
