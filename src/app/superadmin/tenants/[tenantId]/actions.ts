@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { requireSuperAdmin } from "@/lib/auth/require-superadmin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { addTenantDomain, removeTenantDomain } from "@/lib/vercel";
 
 export async function updateTenantAction(prevState: any, formData: FormData) {
   try {
@@ -29,6 +30,14 @@ export async function updateTenantAction(prevState: any, formData: FormData) {
   const subscription_ends_at = endsAtRaw ? new Date(endsAtRaw).toISOString() : null;
   const adminSupabase = createSupabaseAdminClient();
 
+  // Recupera lo slug prima dell'aggiornamento
+  const { data: oldTenant } = await adminSupabase
+    .from("tenants")
+    .select("slug")
+    .eq("id", tenantId)
+    .maybeSingle();
+  const oldSlug = oldTenant?.slug;
+
   const { error } = await (adminSupabase.from("tenants") as any)
     .update({
       name,
@@ -44,6 +53,21 @@ export async function updateTenantAction(prevState: any, formData: FormData) {
       return { error: "Un salone con questo slug esiste già." };
     }
     return { error: `Errore database: ${error.message}` };
+  }
+
+  // Gestione domini su Vercel se lo slug è cambiato
+  if (oldSlug && oldSlug !== slug && slug !== "default") {
+    try {
+      await addTenantDomain(slug);
+      console.log(`[Vercel Domain Config] Nuovo dominio aggiunto per lo slug: ${slug}`);
+
+      if (oldSlug !== "default") {
+        await removeTenantDomain(oldSlug);
+        console.log(`[Vercel Domain Config] Vecchio dominio rimosso per lo slug: ${oldSlug}`);
+      }
+    } catch (vercelError) {
+      console.error("[Vercel Domain Config] Errore aggiornamento domini su Vercel:", vercelError);
+    }
   }
 
   redirect("/superadmin/tenants" as Route);
@@ -63,6 +87,14 @@ export async function deleteTenantAction(prevState: any, formData: FormData) {
 
   const adminSupabase = createSupabaseAdminClient();
 
+  // Recupera lo slug prima dell'eliminazione dal database
+  const { data: tenantData } = await adminSupabase
+    .from("tenants")
+    .select("slug")
+    .eq("id", tenantId)
+    .maybeSingle();
+  const slug = tenantData?.slug;
+
   // RLS e CASCADE cancelleranno tutti i dati del tenant
   const { error } = await adminSupabase
     .from("tenants")
@@ -72,6 +104,16 @@ export async function deleteTenantAction(prevState: any, formData: FormData) {
   if (error) {
     console.error("Errore eliminazione tenant:", error);
     return { error: `Errore database: ${error.message}` };
+  }
+
+  // Rimuovi il dominio da Vercel se lo slug è valido
+  if (slug && slug !== "default") {
+    try {
+      await removeTenantDomain(slug);
+      console.log(`[Vercel Domain Config] Dominio rimosso da Vercel per lo slug: ${slug}`);
+    } catch (vercelError) {
+      console.error(`[Vercel Domain Config] Errore rimozione dominio da Vercel per lo slug ${slug}:`, vercelError);
+    }
   }
 
   redirect("/superadmin/tenants" as Route);

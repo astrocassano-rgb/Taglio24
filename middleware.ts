@@ -20,6 +20,73 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // --- CONTROLLO SCADENZA ABBONAMENTO (TENANT EXPIRED CHECK) ---
+  const host = request.headers.get("host") || "";
+  const domainParts = host.split(".");
+  let subdomain = "";
+
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    const parts = host.split(":");
+    const part0 = parts[0];
+    if (part0) {
+      const localParts = part0.split(".");
+      if (localParts.length > 1) {
+        subdomain = localParts[0] || "";
+      }
+    }
+  } else {
+    if (domainParts.length >= 3) {
+      const sub = domainParts[0] || "";
+      if (sub !== "www" && sub !== "app") {
+        subdomain = sub;
+      }
+    }
+  }
+
+  if (subdomain && subdomain !== "default") {
+    const pathname = request.nextUrl.pathname;
+    
+    // Escludiamo API, static files, auth callback
+    const isPageRequest = !pathname.startsWith("/api") &&
+                          !pathname.startsWith("/_next") &&
+                          !pathname.startsWith("/auth") &&
+                          !pathname.includes(".");
+
+    if (isPageRequest) {
+      try {
+        const { data: tenant } = await (supabase.from("tenants") as any)
+          .select("subscription_ends_at")
+          .eq("slug", subdomain)
+          .maybeSingle();
+
+        if (tenant) {
+          const isExpired = tenant.subscription_ends_at
+            ? new Date(tenant.subscription_ends_at) < new Date()
+            : false;
+
+          if (isExpired) {
+            if (pathname !== "/abbonamento-scaduto") {
+              const expiredUrl = request.nextUrl.clone();
+              expiredUrl.pathname = "/abbonamento-scaduto";
+              expiredUrl.search = "";
+              return NextResponse.redirect(expiredUrl);
+            }
+          } else {
+            if (pathname === "/abbonamento-scaduto") {
+              const homeUrl = request.nextUrl.clone();
+              homeUrl.pathname = "/";
+              homeUrl.search = "";
+              return NextResponse.redirect(homeUrl);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[Middleware] Errore verifica scadenza tenant:", err);
+      }
+    }
+  }
+  // -------------------------------------------------------------
+
   const { data: { user } } = await supabase.auth.getUser();
 
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
