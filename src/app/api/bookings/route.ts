@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       p_start_time,
       p_end_time,
       p_service_type = "SELF_SERVICE",
+      p_service_id,
     } = body;
 
     if (!p_station_id || !p_dog_id || !p_start_time || !p_end_time) {
@@ -110,44 +111,98 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Cane non valido" }, { status: 400 });
     }
 
-    // ⑤ System settings per servizi extra
-    const { data: settingsRaw } = await supabase
-      .from("system_settings")
-      .select(
-        "enable_assisted_wash, price_assisted_wash_credits, enable_full_grooming, price_full_grooming_credits"
-      )
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
-    const settings = settingsRaw as {
-      enable_assisted_wash: boolean;
-      price_assisted_wash_credits: number;
-      enable_full_grooming: boolean;
-      price_full_grooming_credits: number;
-    } | null;
-
+    // ⑤ Determina il servizio e i costi associati
+    let serviceId = p_service_id;
+    let serviceType = p_service_type;
     let operatorCost = 0;
-    if (p_service_type === "ASSISTED_WASH") {
-      if (!settings?.enable_assisted_wash) {
-        return NextResponse.json(
-          { error: "Servizio Lavaggio Assistito non disponibile" },
-          { status: 400 }
-        );
+    let finalCostPerMinute = station.cost_per_minute;
+    let serviceName = "Servizio";
+
+    if (serviceId) {
+      const { data: service, error: serviceErr } = await supabase
+        .from("services")
+        .select("id, name, booking_type, fixed_cost_credits, cost_per_minute_credits, is_active")
+        .eq("id", serviceId)
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (serviceErr || !service) {
+        return NextResponse.json({ error: "Servizio non trovato" }, { status: 400 });
       }
-      operatorCost = settings.price_assisted_wash_credits ?? 0;
-    } else if (p_service_type === "FULL_GROOMING") {
-      if (!settings?.enable_full_grooming) {
-        return NextResponse.json(
-          { error: "Servizio Toelettatura Completa non disponibile" },
-          { status: 400 }
-        );
+      if (!service.is_active) {
+        return NextResponse.json({ error: "Servizio al momento non attivo" }, { status: 400 });
       }
-      operatorCost = settings.price_full_grooming_credits ?? 0;
+
+      serviceType = service.booking_type;
+      operatorCost = Number(service.fixed_cost_credits) || 0;
+      serviceName = service.name;
+      if (Number(service.cost_per_minute_credits) > 0) {
+        finalCostPerMinute = Number(service.cost_per_minute_credits);
+      }
+    } else {
+      // Fallback per vecchie integrazioni o inserimenti admin manuali:
+      // Cerchiamo il servizio attivo di default per questa categoria per questo tenant
+      const { data: fallbackService } = await supabase
+        .from("services")
+        .select("id, name, fixed_cost_credits, cost_per_minute_credits")
+        .eq("tenant_id", tenantId)
+        .eq("booking_type", p_service_type)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (fallbackService) {
+        serviceId = fallbackService.id;
+        serviceName = fallbackService.name;
+        operatorCost = Number(fallbackService.fixed_cost_credits) || 0;
+        if (Number(fallbackService.cost_per_minute_credits) > 0) {
+          finalCostPerMinute = Number(fallbackService.cost_per_minute_credits);
+        }
+      } else {
+        // Fallback assoluto ai vecchi system settings
+        const { data: settingsRaw } = await supabase
+          .from("system_settings")
+          .select("enable_assisted_wash, price_assisted_wash_credits, enable_full_grooming, price_full_grooming_credits")
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
+
+        const settings = settingsRaw as any;
+        if (p_service_type === "ASSISTED_WASH") {
+          if (!settings?.enable_assisted_wash) {
+            return NextResponse.json({ error: "Servizio Lavaggio Assistito non disponibile" }, { status: 400 });
+          }
+          operatorCost = settings.price_assisted_wash_credits ?? 0;
+          serviceName = "Lavaggio Assistito";
+        } else if (p_service_type === "FULL_GROOMING") {
+          if (!settings?.enable_full_grooming) {
+            return NextResponse.json({ error: "Servizio Toelettatura Completa non disponibile" }, { status: 400 });
+          }
+          operatorCost = settings.price_full_grooming_credits ?? 0;
+          serviceName = "Toelettatura Completa";
+        } else {
+          serviceName = "Self-Service";
+        }
+      }
+    }
+
+    if (!serviceId) {
+      // Last-ditch recovery to satisfy NOT NULL constraint
+      const { data: selfService } = await supabase
+        .from("services")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("name", "Self-Service")
+        .maybeSingle();
+      if (selfService) {
+        serviceId = selfService.id;
+      }
     }
 
     // ⑥ Calcolo costo totale
     const durationMs = endTime.getTime() - startTime.getTime();
     const durationMinutes = Math.max(1, Math.ceil(durationMs / 60000));
-    const stationCost = Math.round(station.cost_per_minute * durationMinutes * 100) / 100;
+    const stationCost = Math.round(finalCostPerMinute * durationMinutes * 100) / 100;
     const totalCredits = stationCost + operatorCost;
 
     // ⑦ Leggi wallet
@@ -189,9 +244,10 @@ export async function POST(req: NextRequest) {
         end_time: p_end_time,
         status: "CONFIRMED",
         total_credits: totalCredits,
-        service_type: p_service_type,
+        service_type: serviceType,
         operator_cost_credits: operatorCost,
         tenant_id: tenantId,
+        service_id: serviceId,
       })
       .select("id, status, total_credits")
       .single();
@@ -224,12 +280,7 @@ export async function POST(req: NextRequest) {
       amount_currency: 0,
       stripe_intent_id: null,
       tenant_id: tenantId,
-      note:
-        p_service_type === "ASSISTED_WASH"
-          ? "Prenotazione Lavaggio Assistito"
-          : p_service_type === "FULL_GROOMING"
-          ? "Prenotazione Toelettatura Completa"
-          : "Prenotazione self-service",
+      note: `Prenotazione ${serviceName}`,
     });
 
     // ⑪ Risposta identica all'RPC originale

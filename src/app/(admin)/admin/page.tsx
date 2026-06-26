@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
+  Scissors,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -154,6 +155,7 @@ export default async function AdminHomePage() {
     { href: "/admin/clienti",      label: "Clienti",       Icon: Users,      sub: "Saldi e profili" },
     { href: "/admin/pagamenti",    label: "Pagamenti",     Icon: CreditCard, sub: "Ledger crediti" },
     { href: "/admin/postazioni",   label: "Postazioni",    Icon: MapPin,     sub: "Mappa e layout" },
+    { href: "/admin/servizi",      label: "Servizi",       Icon: Scissors,   sub: "Listino e tariffe" },
     { href: "/admin/coupons",      label: "Coupon",        Icon: Tag,        sub: "Codici promo" },
   ];
 

@@ -211,7 +211,7 @@ export default function HomeClient() {
         supabase.from("wallets").select("balance_credits").eq("customer_id", userId).maybeSingle(),
         supabase
           .from("bookings")
-          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at, service_type, operator_cost_credits, tenant_id")
+          .select("id, dog_id, station_id, start_time, end_time, status, total_credits, customer_id, created_at, service_type, operator_cost_credits, tenant_id, service_id")
           .eq("customer_id", userId)
           .in("status", ["PENDING", "CONFIRMED"])
           .gte("start_time", new Date().toISOString())

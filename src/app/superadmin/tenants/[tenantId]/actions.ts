@@ -305,3 +305,105 @@ export async function deleteTenantStationAction(tenantId: string, stationId: str
   return { success: true };
 }
 
+export async function createTenantServiceAction(
+  tenantId: string,
+  name: string,
+  description: string,
+  stationType: "WASH_BASIN" | "DRYING_ZONE" | "GROOMING_TABLE",
+  bookingType: "SELF_SERVICE" | "ASSISTED_WASH" | "FULL_GROOMING",
+  fixedCost: number,
+  costPerMinute: number
+) {
+  const unauthorized = await ensureSuperAdmin();
+  if (unauthorized) return unauthorized;
+
+  if (!tenantId || !name.trim() || !stationType || !bookingType) {
+    return { error: "Parametri non validi." };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { error } = await (adminSupabase.from("services") as any).insert({
+    tenant_id: tenantId,
+    name: name.trim(),
+    description: description.trim() || null,
+    station_type: stationType,
+    booking_type: bookingType,
+    fixed_cost_credits: fixedCost,
+    cost_per_minute_credits: costPerMinute,
+    is_active: true,
+  });
+
+  if (error) {
+    return { error: "Errore durante la creazione del servizio: " + error.message };
+  }
+
+  revalidatePath(`/superadmin/tenants/${tenantId}`);
+  return { success: true };
+}
+
+export async function updateTenantServiceAction(
+  tenantId: string,
+  id: string,
+  name: string,
+  description: string,
+  stationType: "WASH_BASIN" | "DRYING_ZONE" | "GROOMING_TABLE",
+  bookingType: "SELF_SERVICE" | "ASSISTED_WASH" | "FULL_GROOMING",
+  fixedCost: number,
+  costPerMinute: number,
+  isActive: boolean
+) {
+  const unauthorized = await ensureSuperAdmin();
+  if (unauthorized) return unauthorized;
+
+  if (!tenantId || !id || !name.trim() || !stationType || !bookingType) {
+    return { error: "Parametri non validi." };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { error } = await (adminSupabase.from("services") as any)
+    .update({
+      name: name.trim(),
+      description: description.trim() || null,
+      station_type: stationType,
+      booking_type: bookingType,
+      fixed_cost_credits: fixedCost,
+      cost_per_minute_credits: costPerMinute,
+      is_active: isActive,
+    })
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+
+  if (error) {
+    return { error: "Errore durante l'aggiornamento del servizio: " + error.message };
+  }
+
+  revalidatePath(`/superadmin/tenants/${tenantId}`);
+  return { success: true };
+}
+
+export async function deleteTenantServiceAction(tenantId: string, id: string) {
+  const unauthorized = await ensureSuperAdmin();
+  if (unauthorized) return unauthorized;
+
+  if (!tenantId || !id) {
+    return { error: "Parametri non validi." };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { error } = await (adminSupabase.from("services") as any)
+    .delete()
+    .eq("id", id)
+    .eq("tenant_id", tenantId);
+
+  if (error) {
+    if (error.message.includes("violates foreign key constraint") || error.code === "23503") {
+      return { error: "Impossibile eliminare il servizio: ci sono prenotazioni associate." };
+    }
+    return { error: "Errore durante l'eliminazione del servizio: " + error.message };
+  }
+
+  revalidatePath(`/superadmin/tenants/${tenantId}`);
+  return { success: true };
+}
+
+

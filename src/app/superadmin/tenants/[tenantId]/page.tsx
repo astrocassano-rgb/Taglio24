@@ -7,6 +7,7 @@ import { EditTenantForm } from "./edit-tenant-form";
 import { TenantAdminsCard } from "./tenant-admins-card";
 import { TenantOperationsCard } from "./tenant-operations-card";
 import { TenantStationsCard } from "./tenant-stations-card";
+import { TenantServicesCard } from "./tenant-services-card";
 import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -41,6 +42,13 @@ export default async function EditTenantPage({ params }: Props) {
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: true });
   const stations = (stationsData ?? []) as any[];
+
+  // Carica i servizi per questo salone
+  const { data: servicesData } = await (adminSupabase.from("services") as any)
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: true });
+  const services = (servicesData ?? []) as any[];
 
   // Amministratori del salone: fonte di verità = tenant_customers.role = 'admin' (modello multi-salone).
   // (Prima si filtrava per app_metadata.tenant_id, che limitava un admin a un solo salone.)
@@ -117,6 +125,8 @@ export default async function EditTenantPage({ params }: Props) {
       <TenantAdminsCard tenantId={tenantId} initialAdmins={initialAdmins} />
 
       <TenantStationsCard tenantId={tenantId} initialStations={stations} />
+
+      <TenantServicesCard tenantId={tenantId} initialServices={services} />
     </div>
   );
 }

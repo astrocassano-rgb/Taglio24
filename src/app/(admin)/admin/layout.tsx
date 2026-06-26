@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ClipboardList,
   Settings,
+  Scissors,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/admin/clienti",      label: "Clienti",       Icon: Users },
   { href: "/admin/pagamenti",    label: "Pagamenti",     Icon: CreditCard },
   { href: "/admin/postazioni",   label: "Postazioni",    Icon: MapPin },
+  { href: "/admin/servizi",      label: "Servizi",       Icon: Scissors },
   { href: "/admin/coupons",      label: "Coupon",        Icon: Tag },
   { href: "/admin/audit-logs",   label: "Registro Azioni", Icon: ClipboardList },
   { href: "/admin/impostazioni", label: "Impostazioni",  Icon: Settings },

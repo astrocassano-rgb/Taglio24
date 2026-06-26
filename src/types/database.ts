@@ -191,6 +191,7 @@ export type Database = {
           service_type: Database["public"]["Enums"]["booking_service_type"];
           operator_cost_credits: number;
           tenant_id: string;
+          service_id: string;
           created_at: string;
         };
         Insert: {
@@ -205,6 +206,7 @@ export type Database = {
           service_type?: Database["public"]["Enums"]["booking_service_type"];
           operator_cost_credits?: number;
           tenant_id?: string;
+          service_id: string;
           created_at?: string;
         };
         Update: {
@@ -219,6 +221,46 @@ export type Database = {
           service_type?: Database["public"]["Enums"]["booking_service_type"];
           operator_cost_credits?: number;
           tenant_id?: string;
+          service_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      services: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          description: string | null;
+          station_type: Database["public"]["Enums"]["station_type"];
+          booking_type: Database["public"]["Enums"]["booking_service_type"];
+          fixed_cost_credits: number;
+          cost_per_minute_credits: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          description?: string | null;
+          station_type: Database["public"]["Enums"]["station_type"];
+          booking_type?: Database["public"]["Enums"]["booking_service_type"];
+          fixed_cost_credits?: number;
+          cost_per_minute_credits?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          name?: string;
+          description?: string | null;
+          station_type?: Database["public"]["Enums"]["station_type"];
+          booking_type?: Database["public"]["Enums"]["booking_service_type"];
+          fixed_cost_credits?: number;
+          cost_per_minute_credits?: number;
+          is_active?: boolean;
           created_at?: string;
         };
         Relationships: [];
