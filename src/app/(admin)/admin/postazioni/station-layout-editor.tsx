@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Database } from "@/types/database";
+import { createStationAction, deleteStationAction } from "./actions";
 
 type Station = Database["public"]["Tables"]["stations"]["Row"];
 
@@ -46,6 +47,23 @@ export function StationLayoutEditor({ initialStations }: { initialStations: Stat
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
+
+  // Sync state with props
+  useEffect(() => {
+    setStations(initialStations);
+    if (initialStations.length > 0 && !initialStations.some((s) => s.id === selectedId)) {
+      setSelectedId(initialStations[0]?.id ?? "");
+    }
+  }, [initialStations, selectedId]);
+
+  // States for adding a new station
+  const [isAdding, setIsAdding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState<Station["type"]>("WASH_BASIN");
+  const [newCost, setNewCost] = useState("1.0");
+  const [addingError, setAddingError] = useState<string | null>(null);
+  const [isAddingPending, setIsAddingPending] = useState(false);
+
 
   const selectedStation = useMemo(
     () => stations.find((station) => station.id === selectedId) ?? stations[0] ?? null,
@@ -257,6 +275,120 @@ export function StationLayoutEditor({ initialStations }: { initialStations: Stat
                 </button>
               ))}
             </div>
+
+            {/* Aggiungi Postazione Form */}
+            <div className="border-t border-slate-800/80 pt-4 mt-2">
+              {!isAdding ? (
+                <Button
+                  variant="secondary"
+                  className="w-full gap-2 rounded-xl"
+                  onClick={() => {
+                    setIsAdding(true);
+                    setAddingError(null);
+                  }}
+                >
+                  + Nuova Postazione
+                </Button>
+              ) : (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setAddingError(null);
+                    setIsAddingPending(true);
+                    const cost = Number(newCost.replace(",", "."));
+                    if (!newName.trim()) {
+                      setAddingError("Inserisci un nome.");
+                      setIsAddingPending(false);
+                      return;
+                    }
+                    if (isNaN(cost) || cost <= 0) {
+                      setAddingError("Il costo deve essere maggiore di 0.");
+                      setIsAddingPending(false);
+                      return;
+                    }
+                    try {
+                      const res = await createStationAction(newName, newType, cost);
+                      if (res?.error) {
+                        setAddingError(res.error);
+                      } else {
+                        setIsAdding(false);
+                        setNewName("");
+                        setNewCost("1.0");
+                        setMessage("Nuova postazione creata con successo.");
+                      }
+                    } catch (err: any) {
+                      setAddingError(err.message || "Errore imprevisto.");
+                    } finally {
+                      setIsAddingPending(false);
+                    }
+                  }}
+                  className="space-y-3 rounded-2xl bg-slate-900/60 p-4 ring-1 ring-inset ring-slate-800"
+                >
+                  <p className="font-semibold text-slate-100 text-xs uppercase tracking-wider">Aggiungi Postazione</p>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="new-name" className="text-xs">Nome</Label>
+                    <Input
+                      id="new-name"
+                      placeholder="es. Vasca Grande"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      disabled={isAddingPending}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="new-type" className="text-xs">Tipo</Label>
+                    <select
+                      id="new-type"
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value as Station["type"])}
+                      disabled={isAddingPending}
+                      className="h-10 w-full rounded-xl bg-slate-950 px-3 text-sm text-slate-50 ring-1 ring-inset ring-slate-800"
+                    >
+                      <option value="WASH_BASIN">Lavaggio</option>
+                      <option value="DRYING_ZONE">Asciugatura</option>
+                      <option value="GROOMING_TABLE">Toelettatura</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="new-cost" className="text-xs">Costo/minuto (crediti)</Label>
+                    <Input
+                      id="new-cost"
+                      type="text"
+                      placeholder="1.0"
+                      value={newCost}
+                      onChange={(e) => setNewCost(e.target.value)}
+                      disabled={isAddingPending}
+                    />
+                  </div>
+
+                  {addingError && (
+                    <p className="text-xs text-rose-400 font-medium">{addingError}</p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="flex-1"
+                      disabled={isAddingPending}
+                    >
+                      {isAddingPending ? "Creazione..." : "Crea"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setIsAdding(false)}
+                      disabled={isAddingPending}
+                    >
+                      Annulla
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
           </CardContent>
         </Card>
       </section>
@@ -385,7 +517,37 @@ export function StationLayoutEditor({ initialStations }: { initialStations: Stat
                   </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Sei sicuro di voler eliminare la postazione "${station.name}"?`)) return;
+                      setSavingId(station.id);
+                      setMessage(null);
+                      try {
+                        const res = await deleteStationAction(station.id);
+                        if (res?.error) {
+                          setMessage(res.error);
+                        } else {
+                          setMessage(`Postazione "${station.name}" eliminata con successo.`);
+                          const remaining = stations.filter((s) => s.id !== station.id);
+                          if (remaining.length > 0) {
+                            setSelectedId(remaining[0]?.id ?? "");
+                          }
+                        }
+                      } catch (err: any) {
+                        setMessage(err.message || "Errore durante l'eliminazione.");
+                      } finally {
+                        setSavingId(null);
+                      }
+                    }}
+                    disabled={savingId === station.id}
+                    className="text-rose-400 hover:text-rose-300 border-rose-500/10 hover:bg-rose-950/20 hover:border-rose-500/20"
+                  >
+                    {savingId === station.id ? "..." : "Elimina"}
+                  </Button>
+
                   <Button variant="primary" type="button" onClick={() => void saveStation(station)} disabled={savingId === station.id}>
                     {savingId === station.id ? "Salvataggio..." : "Salva postazione"}
                   </Button>

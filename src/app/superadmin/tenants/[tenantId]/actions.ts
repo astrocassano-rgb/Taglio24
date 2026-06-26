@@ -238,3 +238,70 @@ export async function deleteTenantAction(prevState: any, formData: FormData) {
 
   redirect("/superadmin/tenants" as Route);
 }
+
+export async function createTenantStationAction(
+  tenantId: string,
+  name: string,
+  type: "WASH_BASIN" | "DRYING_ZONE" | "GROOMING_TABLE",
+  costPerMinute: number
+) {
+  const unauthorized = await ensureSuperAdmin();
+  if (unauthorized) return unauthorized;
+
+  if (!tenantId || !name.trim() || !type || costPerMinute <= 0) {
+    return { error: "Parametri non validi." };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+
+  let layout_zone = "Area Servizio";
+  if (type === "WASH_BASIN") layout_zone = "Area Lavaggio";
+  else if (type === "DRYING_ZONE") layout_zone = "Area Asciugatura";
+  else if (type === "GROOMING_TABLE") layout_zone = "Area Toelettatura";
+
+  const { error } = await (adminSupabase.from("stations") as any).insert({
+    name: name.trim(),
+    type,
+    cost_per_minute: costPerMinute,
+    tenant_id: tenantId,
+    status: "AVAILABLE",
+    layout_x: 10,
+    layout_y: 10,
+    layout_w: 16,
+    layout_h: 12,
+    layout_zone,
+  });
+
+  if (error) {
+    return { error: "Errore durante la creazione: " + error.message };
+  }
+
+  revalidatePath(`/superadmin/tenants/${tenantId}`);
+  return { success: true };
+}
+
+export async function deleteTenantStationAction(tenantId: string, stationId: string) {
+  const unauthorized = await ensureSuperAdmin();
+  if (unauthorized) return unauthorized;
+
+  if (!tenantId || !stationId) {
+    return { error: "Parametri non validi." };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { error } = await (adminSupabase.from("stations") as any)
+    .delete()
+    .eq("id", stationId)
+    .eq("tenant_id", tenantId);
+
+  if (error) {
+    if (error.message.includes("violates foreign key constraint") || error.code === "23503") {
+      return { error: "Impossibile eliminare la postazione: ci sono prenotazioni associate ad essa." };
+    }
+    return { error: "Errore durante l'eliminazione: " + error.message };
+  }
+
+  revalidatePath(`/superadmin/tenants/${tenantId}`);
+  return { success: true };
+}
+
