@@ -29,6 +29,68 @@ export async function GET(request: Request) {
           new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
         );
       }
+
+      // --- ASSOCIAZIONE TENANT A NUOVO UTENTE GOOGLE OAUTH ---
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const host = request.headers.get("host") || "";
+        const domainParts = host.split(".");
+        let subdomain = "";
+
+        if (host.includes("localhost") || host.includes("127.0.0.1")) {
+          const parts = host.split(":");
+          const part0 = parts[0];
+          if (part0) {
+            const localParts = part0.split(".");
+            if (localParts.length > 1) {
+              subdomain = localParts[0] || "";
+            }
+          }
+        } else {
+          if (domainParts.length >= 3) {
+            const sub = domainParts[0] || "";
+            if (sub !== "www" && sub !== "app") {
+              subdomain = sub;
+            }
+          }
+        }
+
+        if (subdomain && subdomain !== "default") {
+          // Controlliamo se è un nuovo utente (creato negli ultimi 30 secondi)
+          const isNewUser = user.created_at && (new Date().getTime() - new Date(user.created_at).getTime() < 30000);
+          
+          if (isNewUser) {
+            const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
+            const adminSupabase = createSupabaseAdminClient();
+            
+            const { data: tenant } = await (adminSupabase.from("tenants") as any)
+              .select("id")
+              .eq("slug", subdomain)
+              .maybeSingle();
+
+            if (tenant) {
+              // 1. Aggiorna il profilo pubblico
+              await adminSupabase
+                .from("profiles")
+                .update({ tenant_id: tenant.id })
+                .eq("id", user.id);
+                
+              // 2. Aggiorna il portafoglio
+              await adminSupabase
+                .from("wallets")
+                .update({ tenant_id: tenant.id })
+                .eq("customer_id", user.id);
+                
+              // 3. Aggiorna i metadati di autenticazione dell'utente in Auth
+              await adminSupabase.auth.admin.updateUserById(user.id, {
+                user_metadata: { ...(user.user_metadata ?? {}), tenant_id: tenant.id }
+              });
+              
+              console.log(`[OAuth Callback] Assegnato tenant ${subdomain} a nuovo utente ${user.email}`);
+            }
+          }
+        }
+      }
     } catch (err: any) {
       console.error("Errore imprevisto nel callback auth:", err?.message);
       return NextResponse.redirect(
