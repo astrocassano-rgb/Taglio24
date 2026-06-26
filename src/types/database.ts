@@ -12,6 +12,27 @@ export type Database = {
       booking_service_type: "SELF_SERVICE" | "ASSISTED_WASH" | "FULL_GROOMING";
     };
     Tables: {
+      tenant_customers: {
+        Row: {
+          customer_id: string;
+          tenant_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          customer_id: string;
+          tenant_id: string;
+          role?: string;
+          created_at?: string;
+        };
+        Update: {
+          customer_id?: string;
+          tenant_id?: string;
+          role?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       tenants: {
         Row: {
           id: string;

@@ -60,30 +60,31 @@ export async function addTenantAdminAction(tenantId: string, email: string) {
         .eq("id", existingUser.id)
         .maybeSingle();
 
-      if (profile) {
-        const { error: updateProfileErr } = await adminSupabase
-          .from("profiles")
-          .update({ tenant_id: tenantId })
-          .eq("id", existingUser.id);
-
-        if (updateProfileErr) {
-          return { error: `Errore aggiornamento profilo: ${updateProfileErr.message}` };
-        }
-      } else {
+      if (!profile) {
         const { error: insertProfileErr } = await adminSupabase
           .from("profiles")
-          .insert({ id: existingUser.id, email: cleanEmail, tenant_id: tenantId });
+          .insert({ id: existingUser.id, email: cleanEmail });
 
         if (insertProfileErr) {
           return { error: `Errore creazione profilo: ${insertProfileErr.message}` };
         }
       }
 
-      // 4. Assicura la presenza del portafoglio
+      // 3.1. Associa l'utente come admin per questo specifico salone nella tabella tenant_customers
+      const { error: insertMembershipErr } = await adminSupabase
+        .from("tenant_customers")
+        .upsert({ customer_id: existingUser.id, tenant_id: tenantId, role: "admin" });
+
+      if (insertMembershipErr) {
+        return { error: `Errore associazione ruolo admin: ${insertMembershipErr.message}` };
+      }
+
+      // 4. Assicura la presenza del portafoglio per questo specifico salone
       const { data: existingWallet } = await adminSupabase
         .from("wallets")
         .select("id")
         .eq("customer_id", existingUser.id)
+        .eq("tenant_id", tenantId)
         .maybeSingle();
 
       if (!existingWallet) {
@@ -170,14 +171,15 @@ export async function removeTenantAdminAction(tenantId: string, userId: string) 
       return { error: `Errore aggiornamento metadati auth: ${updateAuthErr.message}` };
     }
 
-    // 3. Sposta il profilo pubblico sul tenant di default
-    const { error: updateProfileErr } = await adminSupabase
-      .from("profiles")
-      .update({ tenant_id: "00000000-0000-0000-0000-000000000000" })
-      .eq("id", userId);
+    // 3. Rimuove il ruolo admin per questo salone nella tabella tenant_customers
+    const { error: deleteMembershipErr } = await adminSupabase
+      .from("tenant_customers")
+      .delete()
+      .eq("customer_id", userId)
+      .eq("tenant_id", tenantId);
 
-    if (updateProfileErr) {
-      return { error: `Errore aggiornamento profilo: ${updateProfileErr.message}` };
+    if (deleteMembershipErr) {
+      return { error: `Errore rimozione ruolo admin: ${deleteMembershipErr.message}` };
     }
 
     revalidatePath(`/superadmin/tenants/${tenantId}`);

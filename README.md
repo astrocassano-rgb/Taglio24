@@ -67,6 +67,100 @@ Ultimi avanzamenti rilevanti:
 - gating “profilo obbligatorio” dopo autenticazione
 - refactor UX prenotazione: data (GG/MM/AAAA o calendario) + selezione orario a ruota
 
+## Multi-tenancy & Account condiviso multisalone (2026-06-26)
+
+> Sezione curata da **claude.ai** (Claude Code). Documenta l'analisi di sicurezza e le correzioni applicate al modello multisalone (Opzione A) e all'automazione dei sottodomini.
+
+### Contesto
+
+Ogni negozio (tenant) è raggiungibile su un sottodominio di terzo livello:
+`https://<slug>.app.dogwash24.it/`. Il sito vetrina resta su Aruba al dominio
+principale `dogwash24.it`; la web app risiede su Vercel.
+
+#### Decisione DNS/SSL (importante)
+
+- Il wildcard SSL `*.app.dogwash24.it` richiederebbe la delega DNS a Vercel
+  (record `NS`), ma **il pannello DNS di Aruba non accetta due record NS sullo
+  stesso host**, quindi la delega del sottodominio non è praticabile.
+- Soluzione adottata: su Aruba un CNAME wildcard `*.app → <target Vercel>` per il
+  **routing** di tutti i sottodomini; su Vercel ogni negozio viene aggiunto come
+  **dominio singolo** (SSL automatico via HTTP-01, senza wildcard cert).
+- L'aggiunta del dominio è **automatizzata** via API Vercel in `src/lib/vercel.ts`
+  (`addTenantDomain` / `getTenantDomainStatus` / `removeTenantDomain`), invocata
+  alla creazione del tenant in `src/app/superadmin/tenants/new/actions.ts`.
+  Env richieste: `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `TENANT_ROOT_DOMAIN`
+  (e `VERCEL_TEAM_ID` se il progetto è dentro un team Vercel).
+
+### Modello dati (Opzione A — account condiviso)
+
+- Identità globale: un utente Supabase usa le stesse credenziali su tutti i saloni.
+- `profiles` diventa globale (rimossa la colonna `tenant_id`).
+- Nuova tabella junction `tenant_customers (customer_id, tenant_id, role)` per
+  l'appartenenza e il ruolo (`customer` / `admin`) per singolo salone.
+- `wallets`: vincolo unico passato da `UNIQUE(customer_id)` a
+  `UNIQUE(customer_id, tenant_id)` → portafoglio separato per salone.
+- Rilevamento tenant: header `x-tenant-id` impostato dal server (da host) e letto
+  in Postgres da `current_tenant_id()`.
+
+Migrazione: `supabase/migrations/20260626130000_multisalone_shared_accounts.sql`.
+
+### Audit di sicurezza e correzioni applicate da claude.ai
+
+Esito audit: l'isolamento RLS è ben ancorato a `auth.uid()` e `is_admin()`
+riverifica l'appartenenza reale in `tenant_customers` → **niente escalation admin
+né leak cross-utente** via spoofing dell'header. Il percorso pagamenti Stripe
+(checkout + webhook) attribuisce correttamente il `tenant_id`.
+
+Correzioni applicate:
+
+1. **`middleware.ts`** — rimosso il blocco `/salone-errato` che leggeva
+   `profiles.tenant_id` (colonna eliminata dalla migrazione): un cliente loggato
+   torna alla home, coerente con l'account condiviso.
+2. **Migrazione dati** — aggiunto `WHERE tenant_id IS NOT NULL` al backfill di
+   `tenant_customers` (un profilo con tenant NULL avrebbe fatto abortire la migrazione).
+3. **`current_tenant_id()`** — rimosso il fallback su `user_metadata` (modificabile
+   dall'utente → spoofing del tenant): senza header affidabile ritorna `NULL`
+   (fail-closed).
+4. **Policy `coupons`** — la lettura ora richiede l'appartenenza reale al salone
+   (`tenant_customers`), non più il solo header falsificabile.
+5. **`init_tenant_customer_if_needed`** — rimosso il bonus automatico (auto-join a
+   saldo 0) + validazione esistenza tenant → stop al farming del bonus benvenuto.
+6. **`handle_new_user`** — bonus benvenuto una-tantum solo al signup reale
+   (`ON CONFLICT DO NOTHING`, niente doppio accredito) + guardia FK sul tenant.
+7. **Tipi/build** — aggiunto il tipo `tenant_customers` in `src/types/database.ts`,
+   annotato il ritorno di `getTenantFromHost()` in `src/lib/tenant.ts` (era inferito
+   come `never`), allineati i cast su `require-admin.ts` / `admin-actions.ts`.
+   `npm run build` verde.
+8. **Policy `tenant_customers`** — sostituita la vecchia policy `FOR ALL` basata su
+   `raw_app_meta_data` con: lettura per gli admin del proprio salone
+   (`is_admin() AND tenant_id = current_tenant_id()`) e **scrittura riservata al solo
+   superadmin**. Le scritture legittime passano comunque da service-role / funzioni
+   `SECURITY DEFINER`, quindi nessun flusso si rompe.
+9. **Sicurezza migrazione** — aggiunto avviso pre-flight (backup + staging) in testa
+   alla migrazione e creato lo script di rollback best-effort documentato
+   `20260626130000_multisalone_shared_accounts.down.sql`.
+10. **Bonus di benvenuto unificato** — introdotta la funzione SQL condivisa
+    `provision_tenant_welcome(p_user_id, p_tenant_id, p_welcome_credits)`, usata sia
+    dal trigger `handle_new_user` (signup email) sia dal callback OAuth
+    (`src/app/auth/callback/route.ts`). Garantisce bonus **identico, una-tantum e
+    sempre registrato nel ledger**; eseguibile solo via service-role (`REVOKE` da
+    `authenticated`/`anon`, `GRANT` a `service_role`). Risolto anche il bug del callback
+    che con un `upsert` azzerava il saldo wallet a 2 per i portafogli già esistenti.
+
+> Differenza tra le due funzioni di provisioning: `init_tenant_customer_if_needed`
+> crea l'appartenenza **senza** bonus (auto-join alla visita di un salone, chiamabile
+> dagli utenti); `provision_tenant_welcome` concede il bonus di benvenuto ed è
+> riservata ai contesti fidati.
+
+### Punti residui (da valutare con il team)
+
+- Dopo l'applicazione della migrazione, **rigenerare i tipi Supabase**
+  (`supabase gen types typescript`) per rimuovere i cast `as any` su `tenant_customers`.
+- La pagina `superadmin/tenants/[tenantId]` filtra ancora gli utenti del salone via
+  `user_metadata.tenant_id` (modello legacy): valutare il passaggio a `tenant_customers`.
+- Valutare la migrazione a due fasi (drop di `profiles.tenant_id` in una seconda
+  migrazione separata) per ridurre il rischio in produzione.
+
 ## Stack tecnico
 
 - Next.js 15 con App Router
@@ -466,6 +560,11 @@ Migration attuali:
 - `0007_station_layout_map.sql`
 - `0008_cancel_booking_refund_policy.sql`
 - `0009_update_cancel_policy_48h.sql`
+- `0010_coupons_and_extensions.sql` … `0020_fix_create_booking_column_ambiguity.sql`
+- `20260618113223_admin_audit_logs.sql`
+- `20260625203300_multi_tenancy.sql` (introduzione tenant + RLS per tenant)
+- `20260626125000_tenants_public_read_rls.sql`
+- `20260626130000_multisalone_shared_accounts.sql` (Opzione A — account condiviso; vedi sezione Multi-tenancy)
 
 La migration `0004` corregge il bug SQL che impediva la prenotazione reale.
 

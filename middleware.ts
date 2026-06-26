@@ -63,6 +63,14 @@ export async function middleware(request: NextRequest) {
           .maybeSingle();
 
         if (tenant) {
+          // Impostiamo il cookie del tenant corrente sulla response per il client
+          response.cookies.set("current_tenant_id", tenant.id, {
+            path: "/",
+            domain: host.includes("localhost") || host.includes("127.0.0.1") ? undefined : `.${process.env.TENANT_ROOT_DOMAIN || "app.dogwash24.it"}`,
+            httpOnly: false,
+            maxAge: 60 * 60 * 24 * 365,
+          });
+
           // 1. Verifica Scadenza
           const isExpired = tenant.subscription_ends_at
             ? new Date(tenant.subscription_ends_at) < new Date()
@@ -73,36 +81,6 @@ export async function middleware(request: NextRequest) {
             expiredUrl.pathname = "/abbonamento-scaduto";
             expiredUrl.search = "";
             return NextResponse.redirect(expiredUrl);
-          }
-
-          // 2. Verifica Mismatch del Tenant (Isolamento Account)
-          if (user) {
-            const role = (user as any)?.app_metadata?.role;
-            const isSuperAdmin = role === "superadmin";
-
-            if (!isSuperAdmin) {
-              const { data: userProfile } = await (supabase.from("profiles") as any)
-                .select("tenant_id")
-                .eq("id", user.id)
-                .maybeSingle();
-
-              if (userProfile && userProfile.tenant_id !== tenant.id) {
-                const errorUrl = request.nextUrl.clone();
-                errorUrl.pathname = "/salone-errato";
-                errorUrl.searchParams.set("from", tenant.name);
-
-                // Recuperiamo anche il nome del salone a cui appartiene l'utente per mostrarlo nella pagina di errore
-                const { data: belongsToTenant } = await (supabase.from("tenants") as any)
-                  .select("name, slug")
-                  .eq("id", userProfile.tenant_id)
-                  .maybeSingle();
-                if (belongsToTenant) {
-                  errorUrl.searchParams.set("belongsTo", belongsToTenant.name);
-                  errorUrl.searchParams.set("belongsToSlug", belongsToTenant.slug);
-                }
-                return NextResponse.redirect(errorUrl);
-              }
-            }
           }
         }
       } catch (err) {
@@ -119,37 +97,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Se l'utente è loggato su /salone-errato, verifichiamo se il tenant ora corrisponde per rimandarlo alla home
+  // Account condiviso multisalone: nessun salone è "sbagliato" per un cliente loggato.
+  // (Il vecchio controllo leggeva profiles.tenant_id, colonna rimossa dalla migrazione multisalone.)
   if (pathname === "/salone-errato" && user) {
-    try {
-      const role = (user as any)?.app_metadata?.role;
-      if (role === "superadmin") {
-        const homeUrl = request.nextUrl.clone();
-        homeUrl.pathname = "/";
-        homeUrl.search = "";
-        return NextResponse.redirect(homeUrl);
-      }
-
-      const { data: userProfile } = await (supabase.from("profiles") as any)
-        .select("tenant_id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (userProfile && subdomain) {
-        const { data: tenant } = await (supabase.from("tenants") as any)
-          .select("id")
-          .eq("slug", subdomain)
-          .maybeSingle();
-        if (tenant && userProfile.tenant_id === tenant.id) {
-          const homeUrl = request.nextUrl.clone();
-          homeUrl.pathname = "/";
-          homeUrl.search = "";
-          return NextResponse.redirect(homeUrl);
-        }
-      }
-    } catch (err) {
-      console.error("[Middleware] Errore verifica reindirizzamento /salone-errato:", err);
-    }
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+    return NextResponse.redirect(homeUrl);
   }
 
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
@@ -169,11 +123,34 @@ export async function middleware(request: NextRequest) {
 
   if (isAdminRoute && user) {
     const role = (user as any)?.app_metadata?.role;
-    if (role !== "admin") {
-      const targetUrl = request.nextUrl.clone();
-      targetUrl.pathname = "/";
-      targetUrl.search = "";
-      return NextResponse.redirect(targetUrl);
+    if (role === "superadmin") {
+      // Il superadmin ha accesso a tutte le rotte admin
+    } else {
+      // Verifica l'appartenenza come admin per questo specifico salone
+      const { data: tenant } = await (supabase.from("tenants") as any)
+        .select("id")
+        .eq("slug", subdomain)
+        .maybeSingle();
+
+      if (tenant) {
+        const { data: membership } = await (supabase.from("tenant_customers") as any)
+          .select("role")
+          .eq("customer_id", user.id)
+          .eq("tenant_id", tenant.id)
+          .maybeSingle();
+
+        if (membership?.role !== "admin") {
+          const targetUrl = request.nextUrl.clone();
+          targetUrl.pathname = "/";
+          targetUrl.search = "";
+          return NextResponse.redirect(targetUrl);
+        }
+      } else {
+        const targetUrl = request.nextUrl.clone();
+        targetUrl.pathname = "/";
+        targetUrl.search = "";
+        return NextResponse.redirect(targetUrl);
+      }
     }
   }
 

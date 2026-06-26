@@ -69,19 +69,26 @@ export async function GET(request: Request) {
               .maybeSingle();
 
             if (tenant) {
-              // 1. Aggiorna il profilo pubblico
-              await adminSupabase
-                .from("profiles")
-                .update({ tenant_id: tenant.id })
-                .eq("id", user.id);
-                
-              // 2. Aggiorna il portafoglio
-              await adminSupabase
-                .from("wallets")
-                .update({ tenant_id: tenant.id })
-                .eq("customer_id", user.id);
-                
-              // 3. Aggiorna i metadati di autenticazione dell'utente in Auth
+              // 1. Provisioning del salone + bonus di benvenuto tramite la funzione SQL CONDIVISA
+              //    provision_tenant_welcome (la stessa usata dal trigger handle_new_user sul signup
+              //    email). Vantaggi rispetto al vecchio doppio upsert manuale:
+              //      - bonus identico tra email e OAuth (coerenza);
+              //      - idempotente: il bonus scatta UNA sola volta per (utente, salone) → no farming;
+              //      - scrive nel ledger token_transactions (tracciabilità del bonus);
+              //      - niente più upsert su wallets che AZZERAVA/sovrascriveva il saldo a 2 in caso
+              //        di portafoglio già esistente (bug del codice precedente).
+              //    La funzione è eseguibile solo via service-role (qui adminSupabase): vedi GRANT in migrazione.
+              const { error: provisionErr } = await (adminSupabase as any).rpc("provision_tenant_welcome", {
+                p_user_id: user.id,
+                p_tenant_id: tenant.id,
+              });
+              if (provisionErr) {
+                console.error("[OAuth Callback] Errore provisioning tenant/bonus benvenuto:", provisionErr);
+              }
+
+              // 2. Aggiorna i metadati Auth dell'utente. NB: tenant_id in user_metadata NON è più usato
+              //    per risolvere il tenant (vedi current_tenant_id), ma serve ancora alla pagina
+              //    superadmin /superadmin/tenants/[tenantId] per filtrare gli utenti del salone.
               await adminSupabase.auth.admin.updateUserById(user.id, {
                 user_metadata: { ...(user.user_metadata ?? {}), tenant_id: tenant.id }
               });

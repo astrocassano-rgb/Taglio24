@@ -56,17 +56,27 @@ export async function POST(request: Request) {
         return Response.json({ received: true, status: "duplicate" });
       }
 
-      // 2. Recupera o crea il wallet per l'utente
+      const tenantId = session.metadata?.tenant_id || "00000000-0000-0000-0000-000000000000";
+
+      // 2. Recupera o crea il wallet per l'utente legato a questo specifico tenant
       let { data: wallet } = await admin
         .from("wallets")
         .select("id, balance_credits")
         .eq("customer_id", customerId)
+        .eq("tenant_id", tenantId)
         .maybeSingle();
 
       if (!wallet) {
+        // Garantisce che ci sia il record di relazione cliente-tenant prima del portafoglio
+        await (admin as any)
+          .from("tenant_customers")
+          .insert({ customer_id: customerId, tenant_id: tenantId, role: "customer" })
+          .select()
+          .maybeSingle();
+
         const { data: newWallet, error: createError } = await admin
           .from("wallets")
-          .insert({ customer_id: customerId, balance_credits: 0 })
+          .insert({ customer_id: customerId, tenant_id: tenantId, balance_credits: 0 })
           .select("id, balance_credits")
           .single();
 
@@ -101,6 +111,7 @@ export async function POST(request: Request) {
         .from("token_transactions")
         .insert({
           wallet_id: wallet.id,
+          tenant_id: tenantId,
           type: "CHARGE",
           amount_credits: credits,
           amount_currency: price,

@@ -1,7 +1,10 @@
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
 
-export async function getTenantFromHost() {
+type TenantRow = Database["public"]["Tables"]["tenants"]["Row"];
+
+export async function getTenantFromHost(options?: { base?: boolean }): Promise<TenantRow | null> {
   const headersList = await headers();
   const host = headersList.get("host") || "";
   
@@ -28,7 +31,7 @@ export async function getTenantFromHost() {
     }
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient({ base: options?.base });
 
   if (subdomain) {
     const { data: tenant } = await supabase

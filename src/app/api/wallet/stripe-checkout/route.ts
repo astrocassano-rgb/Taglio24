@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getTenantFromHost } from "@/lib/tenant";
 import Stripe from "stripe";
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 
   const selectedPack = packs[packId];
   const origin = request.headers.get("origin") ?? "http://localhost:3000";
+  const tenant = (await getTenantFromHost()) as any;
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -64,6 +66,7 @@ export async function POST(request: Request) {
         pack: packId,
         credits: String(selectedPack.credits),
         price: String(selectedPack.price),
+        tenant_id: tenant?.id || "",
       },
     });
 

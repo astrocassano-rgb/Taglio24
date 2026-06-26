@@ -16,12 +16,29 @@ type CookieOptions = {
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(options?: { base?: boolean }) {
   const cookieStore = await cookies();
   const env = getEnv();
   if (!env) throw new Error("Variabili d'ambiente Supabase mancanti (.env.local).");
 
+  let headersToInject: Record<string, string> = {};
+
+  if (!options?.base) {
+    try {
+      const { getTenantFromHost } = await import("@/lib/tenant");
+      const tenant = await getTenantFromHost({ base: true });
+      if (tenant?.id) {
+        headersToInject["x-tenant-id"] = tenant.id;
+      }
+    } catch (err) {
+      console.error("[createSupabaseServerClient] Errore caricamento tenant:", err);
+    }
+  }
+
   return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    global: {
+      headers: headersToInject
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -58,6 +75,11 @@ export async function getSupabaseForTenant(tenantId: string) {
   const anonKey = (env as any)[`NEXT_PUBLIC_SUPABASE_ANON_KEY_${suffix}`] || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   return createServerClient<Database>(url, anonKey, {
+    global: {
+      headers: {
+        "x-tenant-id": tenantId
+      }
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -72,3 +94,4 @@ export async function getSupabaseForTenant(tenantId: string) {
     }
   });
 }
+

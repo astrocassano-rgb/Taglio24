@@ -267,7 +267,6 @@ function LoginContent() {
           id: data.user.id,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          tenant_id: tenantId,
         });
       }
 

@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getTenantFromHost } from "@/lib/tenant";
 
 export async function requireAdmin(options?: { next?: string; mode?: "redirect" | "notFound" }) {
   const supabase = await createSupabaseServerClient();
@@ -12,19 +13,32 @@ export async function requireAdmin(options?: { next?: string; mode?: "redirect" 
     redirect(`/login?next=${encodeURIComponent(next)}`);
   }
 
+  const tenant = (await getTenantFromHost()) as any;
+  const tenantId = tenant?.id || "00000000-0000-0000-0000-000000000000";
+
   const role = (user as any)?.app_metadata?.role;
-  const isAdmin = role === "admin";
-  if (!isAdmin) {
+  const isSuperAdmin = role === "superadmin";
+
+  let isTenantAdmin = false;
+  if (isSuperAdmin) {
+    isTenantAdmin = true;
+  } else {
+    const { data: membership } = await (supabase as any)
+      .from("tenant_customers")
+      .select("role")
+      .eq("customer_id", user.id)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (membership?.role === "admin") {
+      isTenantAdmin = true;
+    }
+  }
+
+  if (!isTenantAdmin) {
     if (options?.mode === "notFound") notFound();
     redirect("/");
   }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", user.id)
-    .maybeSingle() as any;
-  const tenantId = profile?.tenant_id || "00000000-0000-0000-0000-000000000000";
 
   return { supabase, user, tenantId };
 }
