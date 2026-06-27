@@ -6,13 +6,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "DogWash24 — Piattaforma Toilettatura Ibrida",
+  title: "Taglio24 — Piattaforma Saloni Ibrida",
   description:
-    "Piattaforma per toelettatura self-service H24 e assistita con personale: prenotazioni, wallet crediti, dashboard admin, check-in QR e kiosk.",
+    "Piattaforma per parrucchieri e barbieri self-service H24 e assistita con personale: prenotazioni, wallet crediti, dashboard admin, check-in QR e kiosk.",
   openGraph: {
-    title: "DogWash24 — Piattaforma Toilettatura Ibrida",
+    title: "Taglio24 — Piattaforma Saloni Ibrida",
     description:
-      "Prenotazioni, wallet crediti, dashboard admin e flessibilità operativa: lavaggi self-service H24 e servizi assistiti.",
+      "Prenotazioni, wallet crediti, dashboard admin e flessibilità operativa: servizi self-service H24 e assistiti.",
     type: "website"
   }
 };
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 const features: { title: string; description: string; Icon: LucideIcon }[] = [
   {
     title: "Flessibilità Ibrida (Self & Staff)",
-    description: "Gestisci postazioni libere in modalità self-service H24 e l'agenda degli operatori per lavaggi assistiti.",
+    description: "Gestisci postazioni libere in modalità self-service H24 e l'agenda degli operatori per servizi assistiti.",
     Icon: Sparkles
   },
   {
@@ -55,12 +55,12 @@ export default function PiattaformaPage() {
     <div className="space-y-8 py-6">
       <section className="space-y-5">
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="DogWash24" width={160} height={160} className="h-10 w-auto" priority />
-          <p className="text-xs font-medium tracking-wide text-slate-400">Toelettatura · Self-Service · Assistito · H24</p>
+          <Image src="/logo.png" alt="Taglio24" width={160} height={160} className="h-10 w-auto" priority />
+          <p className="text-xs font-medium tracking-wide text-slate-400">Taglio · Barba · Self-Service · Assistito · H24</p>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">La piattaforma completa per gestire Toilettature Self-Service, Assistite o Ibride</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">La piattaforma completa per gestire Saloni di Parrucchieri & Barbieri Self-Service, Assistiti o Ibridi</h1>
         <p className="max-w-2xl text-sm leading-relaxed text-slate-200">
-          DogWash24 unifica la gestione delle strutture: automatizza il self-service H24 con sblocco QR e chiosco fisico, e offre un&apos;agenda avanzata per le prenotazioni assistite con i tuoi operatori. Riduci la gestione manuale, ottimizza le vasche e massimizza la resa per metro quadro.
+          Taglio24 unifica la gestione delle strutture: automatizza il self-service H24 con sblocco QR e chiosco fisico, e offre un&apos;agenda avanzata per le prenotazioni assistite con i tuoi operatori. Riduci la gestione manuale, ottimizza le poltrone e massimizza la resa per metro quadro.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link href="/prenota" className="w-full sm:w-auto">
@@ -68,7 +68,7 @@ export default function PiattaformaPage() {
               Vedi demo prenotazione
             </Button>
           </Link>
-          <a className="w-full sm:w-auto" href="mailto:info@dogwash24.it?subject=Richiesta%20demo%20DogWash24">
+          <a className="w-full sm:w-auto" href="mailto:info@taglio24.it?subject=Richiesta%20demo%20Taglio24">
             <Button className="w-full" variant="secondary">
               Richiedi una demo
             </Button>
@@ -84,7 +84,7 @@ export default function PiattaformaPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-300">
             <p>
-              La piattaforma unisce due mondi: l&apos;automazione H24 del self-service (prenotazione, crediti, sblocco vasca con QR) e l&apos;efficienza della toelettatura tradizionale con operatore. Monitora sessioni live, gestisci lo staff e ottimizza l&apos;uso delle postazioni in tempo reale.
+              La piattaforma unisce due mondi: l&apos;automazione H24 del self-service (prenotazione, crediti, sblocco postazione con QR) e l&apos;efficienza del salone tradizionale con operatore. Monitora sessioni live, gestisci lo staff e ottimizza l&apos;uso delle postazioni in tempo reale.
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="rounded-3xl bg-slate-950/40 p-4 ring-1 ring-inset ring-slate-800">
@@ -179,7 +179,7 @@ export default function PiattaformaPage() {
           </Card>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <a className="w-full sm:w-auto" href="mailto:info@dogwash24.it?subject=Richiesta%20offerta%20DogWash24&body=Buongiorno%2C%20vorrei%20una%20proposta%20per%20la%20piattaforma%20DogWash24.%0A%0AImpianto%3A%20%0APostazioni%3A%20%0ANote%3A%20">
+          <a className="w-full sm:w-auto" href="mailto:info@taglio24.it?subject=Richiesta%20offerta%20Taglio24&body=Buongiorno%2C%20vorrei%20una%20proposta%20per%20la%20piattaforma%20Taglio24.%0A%0AImpianto%3A%20%0APostazioni%3A%20%0ANote%3A%20">
             <Button className="w-full" variant="primary">
               Richiedi un&apos;offerta
             </Button>

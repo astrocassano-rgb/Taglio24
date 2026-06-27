@@ -73,7 +73,7 @@ export function PwaInstallPrompt() {
       </div>
       
       <div className="flex-1">
-        <h4 className="font-semibold text-slate-100 text-sm">Installa DogWash24</h4>
+        <h4 className="font-semibold text-slate-100 text-sm">Installa Taglio24</h4>
         {isIOS ? (
           <p className="text-xs text-slate-400">Tocca Condividi e &quot;Aggiungi a Home&quot;</p>
         ) : (

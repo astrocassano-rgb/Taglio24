@@ -11,7 +11,7 @@ function teamQuery() {
 export async function addTenantDomain(slug: string): Promise<string> {
   const token = process.env.VERCEL_TOKEN;
   const projectId = process.env.VERCEL_PROJECT_ID;
-  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.dogwash24.it";
+  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.taglio24.it";
 
   if (!token || !projectId) {
     throw new Error("Variabili d'ambiente VERCEL_TOKEN o VERCEL_PROJECT_ID mancanti.");
@@ -51,7 +51,7 @@ export async function addTenantDomain(slug: string): Promise<string> {
 export async function getTenantDomainStatus(slug: string): Promise<any> {
   const token = process.env.VERCEL_TOKEN;
   const projectId = process.env.VERCEL_PROJECT_ID;
-  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.dogwash24.it";
+  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.taglio24.it";
 
   if (!token || !projectId) {
     console.warn("[Vercel API] getTenantDomainStatus ignorato: token o projectId mancanti.");
@@ -82,7 +82,7 @@ export async function getTenantDomainStatus(slug: string): Promise<any> {
 export async function removeTenantDomain(slug: string): Promise<string> {
   const token = process.env.VERCEL_TOKEN;
   const projectId = process.env.VERCEL_PROJECT_ID;
-  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.dogwash24.it";
+  const rootDomain = process.env.TENANT_ROOT_DOMAIN || "app.taglio24.it";
 
   if (!token || !projectId) {
     throw new Error("Variabili d'ambiente VERCEL_TOKEN o VERCEL_PROJECT_ID mancanti.");

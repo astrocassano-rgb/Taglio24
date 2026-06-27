@@ -38,14 +38,14 @@ export async function GET(_: Request, context: { params: Promise<{ bookingId: st
   const dogRecord = dog as Pick<Database["public"]["Tables"]["dogs"]["Row"], "name"> | null;
   const stationRecord = station as Pick<Database["public"]["Tables"]["stations"]["Row"], "name"> | null;
 
-  const title = `DogWash24 - ${dogRecord?.name ?? "Prenotazione"} (${stationRecord?.name ?? "Postazione"})`;
-  const description = `Prenotazione DogWash24 per ${dogRecord?.name ?? "il tuo cane"} presso ${stationRecord?.name ?? "la postazione"}.`;
-  const uid = `${bookingRecord.id}@dogwash24.local`;
+  const title = `Taglio24 - ${dogRecord?.name ?? "Prenotazione"} (${stationRecord?.name ?? "Postazione"})`;
+  const description = `Prenotazione Taglio24 per ${dogRecord?.name ?? "il tuo profilo"} presso ${stationRecord?.name ?? "il salone"}.`;
+  const uid = `${bookingRecord.id}@taglio24.local`;
 
   const body = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//DogWash24//Prenotazioni//IT",
+    "PRODID:-//Taglio24//Prenotazioni//IT",
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${toIcsDate(new Date().toISOString())}`,

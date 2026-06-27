@@ -109,7 +109,7 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
 
   const isProtectedRoute = request.nextUrl.pathname.startsWith("/prenota/nuova") ||
-    request.nextUrl.pathname.startsWith("/cani") ||
+    request.nextUrl.pathname.startsWith("/profili") ||
     request.nextUrl.pathname.startsWith("/wallet") ||
     request.nextUrl.pathname.startsWith("/profilo") ||
     request.nextUrl.pathname.startsWith("/prenotazioni");

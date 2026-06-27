@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CreditCard, CalendarDays, PawPrint, LogIn, Mail, Lock, UserPlus, Apple, CheckCircle2 } from "lucide-react";
+import { CreditCard, CalendarDays, Scissors, LogIn, Mail, Lock, UserPlus, Apple, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,19 +253,19 @@ export default function HomeClient() {
           <div className="mx-auto w-44 max-w-full">
             <Image
               src="/logo.png"
-              alt="DogWash24 - Self Service Toilettatura"
+              alt="Taglio24 - Smart Booking"
               width={440}
               height={440}
               priority
               className="h-auto w-full"
             />
           </div>
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Self-Service H24</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Smart Booking H24</p>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">
-            DogWash24
+            Taglio24
           </h1>
           <p className="mx-auto max-w-xs text-sm text-slate-400 leading-relaxed">
-            La soluzione self-service per la cura e il lavaggio del tuo cane, accessibile a qualsiasi ora del giorno e della notte.
+            La soluzione smart per la cura e il taglio dei tuoi capelli, accessibile a qualsiasi ora del giorno e della notte.
           </p>
         </section>
 
@@ -303,18 +303,18 @@ export default function HomeClient() {
               <div className="rounded-3xl bg-gradient-to-br from-emerald-500/15 to-lime-500/10 p-4 ring-1 ring-inset ring-emerald-500/20">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 ring-1 ring-inset ring-emerald-400/30">
-                    <PawPrint className="h-6 w-6 text-emerald-200" />
+                    <Scissors className="h-6 w-6 text-emerald-200" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-50">2. Inserisci i dati del tuo cane</p>
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">Scheda completa</p>
+                      <p className="text-sm font-semibold text-slate-50">2. Crea i tuoi profili di taglio</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">Profili personali</p>
                     </div>
                     <p className="text-sm leading-relaxed text-slate-350">
-                      Salvi nome, taglia, peso e note utili per avere profili ordinati, pronti da usare per ogni nuova prenotazione.
+                      Salvi nome, lunghezza capelli e preferenze per avere profili ordinati, pronti da usare per ogni nuova prenotazione.
                     </p>
                     <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-200">
-                      Profili cane, note e storico utilizzo
+                      Profili di taglio, note e storico utilizzo
                     </p>
                   </div>
                 </div>
@@ -331,10 +331,10 @@ export default function HomeClient() {
                       <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">Prenotazione</p>
                     </div>
                     <p className="text-sm leading-relaxed text-slate-350">
-                      Controlli il wallet, verifichi disponibilita di giorni e orari e prenoti la postazione migliore per il tuo cane.
+                      Controlli il wallet, verifichi disponibilità di giorni e orari e prenoti il servizio di taglio migliore per te.
                     </p>
                     <p className="text-[11px] font-medium uppercase tracking-wide text-amber-200">
-                      Crediti, disponibilita e conferma slot
+                      Crediti, disponibilità e conferma slot
                     </p>
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export default function HomeClient() {
 
         <div className="pt-2 text-center">
           <Link href="/piattaforma" className="text-xs font-semibold text-slate-400 underline-offset-4 hover:underline hover:text-slate-200 transition-colors">
-            Sei un gestore? Scopri la piattaforma DogWash24
+            Sei un gestore? Scopri la piattaforma Taglio24
           </Link>
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function HomeClient() {
             height={120}
             className="h-8 w-auto"
           />
-          <p className="text-xs font-medium tracking-wide text-slate-400">Toilettatura · Self-Service</p>
+          <p className="text-xs font-medium tracking-wide text-slate-400">Taglio · Barba · Self-Service</p>
         </div>
         <h2 className="text-2xl font-semibold tracking-tight">La tua Dashboard</h2>
         <p className="text-sm leading-relaxed text-slate-200">
@@ -417,15 +417,15 @@ export default function HomeClient() {
           </Card>
         </Link>
 
-        <Link href="/cani" className="block">
+        <Link href="/profili" className="block">
           <Card className="h-full hover:bg-slate-900/50 transition-colors">
             <CardContent className="pt-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold">I miei cani</p>
+                  <p className="text-sm font-semibold">Miei Profili</p>
                   <p className="mt-1 text-xs text-slate-400">Gestisci profili</p>
                 </div>
-                <PawPrint className="h-5 w-5 text-slate-300" />
+                <Scissors className="h-5 w-5 text-slate-300" />
               </div>
             </CardContent>
           </Card>
@@ -445,7 +445,7 @@ export default function HomeClient() {
               const startTime = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit" }).format(start);
               const endTime = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "2-digit" }).format(end);
               const station = stationNames[b.station_id] ?? "Postazione";
-              const dog = dogNames[b.dog_id] ?? "Cane";
+              const dog = dogNames[b.dog_id] ?? "Profilo";
 
               return (
                 <Card key={b.id}>

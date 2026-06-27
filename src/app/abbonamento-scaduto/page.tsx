@@ -46,7 +46,7 @@ export default function AbbonamentoScadutoPage() {
           {/* Azioni */}
           <div className="flex flex-col gap-3">
             <a
-              href="mailto:info@dogwash24.it?subject=Rinnovo%20Abbonamento%20Salone"
+              href="mailto:info@taglio24.it?subject=Rinnovo%20Abbonamento%20Salone"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl font-medium transition-colors bg-blue-500 text-white hover:bg-blue-400 active:bg-blue-600 w-full shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 text-base"
             >
               <Mail className="h-4 w-4" />
@@ -54,7 +54,7 @@ export default function AbbonamentoScadutoPage() {
             </a>
             
             <a
-              href="https://app.dogwash24.it/superadmin"
+              href="https://app.taglio24.it/superadmin"
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl font-medium transition-colors bg-transparent text-slate-400 hover:text-slate-200 w-full text-xs"
             >
               {"Accedi come Superadmin"}
@@ -64,7 +64,7 @@ export default function AbbonamentoScadutoPage() {
 
         {/* Footer */}
         <p className="text-center text-[10px] text-slate-600 mt-6 tracking-wider uppercase font-semibold">
-          Powered by DogWash24 &copy; {new Date().getFullYear()}
+          Powered by Taglio24 &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

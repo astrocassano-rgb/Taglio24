@@ -347,7 +347,7 @@ function LoginContent() {
           <div className="mx-auto w-44 max-w-full">
             <Image
               src="/logo.png"
-              alt="DogWash24 - Self Service Toilettatura"
+              alt="Taglio24 - Smart Booking"
               width={440}
               height={440}
               priority
@@ -355,7 +355,7 @@ function LoginContent() {
             />
           </div>
         </Link>
-        <p className="text-xs text-slate-500 tracking-wide">La piattaforma per la toilettatura H24</p>
+        <p className="text-xs text-slate-500 tracking-wide">La piattaforma per i saloni di taglio H24</p>
       </div>
 
       <div className="mb-6">

@@ -1,35 +1,36 @@
 import type { Database } from "@/types/database";
 
 export type StationType = Database["public"]["Enums"]["station_type"];
-export type DogSize = Database["public"]["Enums"]["dog_size"];
+export type DogSize = Database["public"]["Enums"]["dog_size"]; // Mappato concettualmente a Lunghezza Capelli
 export type DogProfile = Pick<Database["public"]["Tables"]["dogs"]["Row"], "name" | "size" | "weight"> | null;
 
 export const SERVICE_LABELS: Record<StationType, string> = {
-  WASH_BASIN: "Lavaggio",
-  DRYING_ZONE: "Asciugatura",
-  GROOMING_TABLE: "Toelettatura"
+  WASH_BASIN: "Lavaggio & Shampoo",
+  DRYING_ZONE: "Piega & Styling",
+  GROOMING_TABLE: "Taglio, Barba & Trattamenti"
 };
 
 const SERVICE_ORDER: StationType[] = ["WASH_BASIN", "DRYING_ZONE", "GROOMING_TABLE"];
 
+// Tempistiche medie realistiche per un salone di parrucchieri / barbieri
 const SERVICE_BASE_MINUTES: Record<StationType, Record<DogSize, number>> = {
   WASH_BASIN: {
-    SMALL: 20,
-    MEDIUM: 30,
-    LARGE: 40,
-    GIANT: 50
+    SMALL: 15,       // Capelli corti / rasatura
+    MEDIUM: 15,      // Capelli medi
+    LARGE: 20,       // Capelli lunghi
+    GIANT: 25        // Capelli molto lunghi
   },
   DRYING_ZONE: {
-    SMALL: 10,
-    MEDIUM: 15,
-    LARGE: 20,
-    GIANT: 25
+    SMALL: 15,
+    MEDIUM: 20,
+    LARGE: 30,
+    GIANT: 45
   },
   GROOMING_TABLE: {
     SMALL: 20,
     MEDIUM: 30,
-    LARGE: 40,
-    GIANT: 50
+    LARGE: 45,
+    GIANT: 60
   }
 };
 
@@ -68,16 +69,11 @@ export function getServiceSummary(services: StationType[]) {
 export function estimateDurationForBundle(services: StationType[], dog: DogProfile) {
   const normalized = normalizeServiceBundle(services);
   const size: DogSize = dog?.size ?? "MEDIUM";
-  const weight = dog?.weight ?? null;
 
   const baseMinutes = normalized.reduce((sum, service) => sum + SERVICE_BASE_MINUTES[service][size], 0);
 
-  let weightAdjustment = 0;
-  if (weight !== null) {
-    if (weight >= 45) weightAdjustment = 15;
-    else if (weight >= 30) weightAdjustment = 10;
-    else if (weight >= 15) weightAdjustment = 5;
-  }
+  // Per i parrucchieri non serve l'aggiustamento di peso dei cani, lo impostiamo a 0
+  const weightAdjustment = 0;
 
   const suggestedMinutes = clampToQuarterHour(baseMinutes + weightAdjustment);
   const choices = Array.from(

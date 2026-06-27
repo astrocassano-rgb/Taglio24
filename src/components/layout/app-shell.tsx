@@ -20,8 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           isWide ? "max-w-4xl" : "max-w-md"
         )}>
           <div>
-            <p className="text-sm text-slate-300">Toilettatura</p>
-            <h1 className="text-base font-semibold tracking-tight">Self-Service</h1>
+            <p className="text-sm text-slate-300">Taglio24</p>
+            <h1 className="text-base font-semibold tracking-tight">Smart Booking</h1>
           </div>
           <LogoutButton />
         </div>

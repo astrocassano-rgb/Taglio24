@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
-import { Home, CalendarDays, Wallet, PawPrint, User, LogIn } from "lucide-react";
+import { Home, CalendarDays, Wallet, Scissors, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { tryCreateSupabaseBrowserClient } from "@/lib/supabase/optional";
 import { safeGetSession } from "@/lib/supabase/safe-session";
@@ -42,7 +42,7 @@ export function BottomNav() {
         { href: "/" as Route, label: "Home", Icon: Home },
         { href: "/prenota" as Route, label: "Prenota", Icon: CalendarDays },
         { href: "/wallet" as Route, label: "Wallet", Icon: Wallet },
-        { href: "/cani" as Route, label: "I miei cani", Icon: PawPrint },
+        { href: "/profili" as Route, label: "Miei Profili", Icon: Scissors },
         { href: "/profilo" as Route, label: "Profilo", Icon: User }
       ];
     } else {

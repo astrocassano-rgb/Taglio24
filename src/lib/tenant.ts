@@ -8,7 +8,7 @@ export async function getTenantFromHost(options?: { base?: boolean }): Promise<T
   const headersList = await headers();
   const host = headersList.get("host") || "";
   
-  // Esempio host: pawspa.dogwash24.it, pawspa.localhost:3000, localhost:3000
+  // Esempio host: pawspa.taglio24.it, pawspa.localhost:3000, localhost:3000
   const domainParts = host.split(".");
   let subdomain = "";
   
@@ -22,7 +22,7 @@ export async function getTenantFromHost(options?: { base?: boolean }): Promise<T
       }
     }
   } else {
-    // Es: pawspa.dogwash24.it -> parts: ['pawspa', 'dogwash24', 'it']
+    // Es: pawspa.taglio24.it -> parts: ['pawspa', 'taglio24', 'it']
     if (domainParts.length >= 3) {
       const sub = domainParts[0] || "";
       if (sub !== "www" && sub !== "app") {

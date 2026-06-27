@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, ChevronLeft, Clock3, CreditCard, PawPrint } from "lucide-react";
+import { CalendarDays, ChevronLeft, Clock3, CreditCard, Scissors } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SERVICE_LABELS, createGoogleCalendarUrl, type StationType } from "@/lib/booking-planner";
@@ -148,7 +148,7 @@ export default async function PrenotazioneDettaglioPage({
               )}
               {bookingRecord.service_type === "FULL_GROOMING" && (
                 <span className="rounded bg-fuchsia-500/15 text-fuchsia-200 px-2 py-0.5 text-xs font-bold ring-1 ring-inset ring-fuchsia-500/20">
-                  Toelettatura Completa
+                  Taglio Completo
                 </span>
               )}
               <span className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${statusTone}`}>{status.label}</span>
@@ -169,9 +169,9 @@ export default async function PrenotazioneDettaglioPage({
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-3xl bg-slate-950/40 p-4 ring-1 ring-inset ring-slate-800">
               <div className="flex items-center gap-3">
-                <PawPrint className="h-5 w-5 text-slate-200" />
+                <Scissors className="h-5 w-5 text-slate-200" />
                 <div>
-                  <p className="text-sm text-slate-300">Cane</p>
+                  <p className="text-sm text-slate-300">Profilo</p>
                   <p className="text-base font-semibold text-slate-50">{dogName}</p>
                 </div>
               </div>
@@ -186,7 +186,7 @@ export default async function PrenotazioneDettaglioPage({
                     {serviceLabel} · {stationName}
                   </p>
                   <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                    {bookingRecord.service_type === "FULL_GROOMING" ? "Toelettatura Completa" : bookingRecord.service_type === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service"}
+                    {bookingRecord.service_type === "FULL_GROOMING" ? "Taglio Completo" : bookingRecord.service_type === "ASSISTED_WASH" ? "Lavaggio/Servizio Assistito" : "Self-Service"}
                   </p>
                 </div>
               </div>
@@ -216,8 +216,8 @@ export default async function PrenotazioneDettaglioPage({
           <div className="grid gap-2 sm:grid-cols-2">
             <a
               href={createGoogleCalendarUrl({
-                title: `DogWash24 - ${dogName}`,
-                details: `${stationName} · Prenotazione DogWash24 per ${dogName}`,
+                title: `Taglio24 - ${dogName}`,
+                details: `${stationName} · Prenotazione Taglio24 per ${dogName}`,
                 location: stationName,
                 startIso: bookingRecord.start_time,
                 endIso: bookingRecord.end_time

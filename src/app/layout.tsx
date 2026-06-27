@@ -5,13 +5,13 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "DogWash24",
-  description: "La prima piattaforma ibrida per Self-Service e Toelettatura.",
-  applicationName: "DogWash24",
+  title: "Taglio24",
+  description: "La prima piattaforma smart per saloni di parrucchieri e barbieri.",
+  applicationName: "Taglio24",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DogWash24"
+    title: "Taglio24"
   },
   manifest: "/manifest.json"
 };

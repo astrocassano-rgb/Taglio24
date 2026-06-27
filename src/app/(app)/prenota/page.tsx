@@ -14,7 +14,7 @@ import {
   Clock3, 
   Droplets, 
   Lock, 
-  PawPrint, 
+  Scissors, 
   RefreshCw, 
   Sparkles, 
   ChevronLeft, 
@@ -64,9 +64,9 @@ const calendarDays = 90;
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 
 const serviceOptions: { value: StationType; label: string; subtitle: string; Icon: LucideIcon }[] = [
-  { value: "WASH_BASIN", label: "Lavaggio", subtitle: "Bagno completo e rapido", Icon: Sparkles },
-  { value: "DRYING_ZONE", label: "Asciugatura", subtitle: "Per il pelo dopo il lavaggio", Icon: Droplets },
-  { value: "GROOMING_TABLE", label: "Toelettatura", subtitle: "Per sistemare il cane con calma", Icon: PawPrint }
+  { value: "WASH_BASIN", label: "Lavaggio & Shampoo", subtitle: "Shampoo e massaggio rilassante", Icon: Droplets },
+  { value: "DRYING_ZONE", label: "Piega & Styling", subtitle: "Asciugatura e definizione della piega", Icon: Sparkles },
+  { value: "GROOMING_TABLE", label: "Taglio & Trattamenti", subtitle: "Taglio capelli, barba e trattamenti speciali", Icon: Scissors }
 ];
 
 function startOfLocalDay(d: Date) {
@@ -689,9 +689,9 @@ export default function PrenotaPage() {
       // Invio notifica WhatsApp in background
       sendBookingConfirmationWhatsApp(currentUserId, {
         stationName: stations.find(s => s.id === confirmSlot.stationId)?.name || "Postazione",
-        dogName: selectedDog?.name || "Cane",
+        dogName: selectedDog?.name || "Profilo",
         startTime: confirmSlot.start.toISOString(),
-        serviceLabel: serviceType === "FULL_GROOMING" ? "Toelettatura Completa" : serviceType === "ASSISTED_WASH" ? "Lavaggio Assistito" : "Self-Service",
+        serviceLabel: serviceType === "FULL_GROOMING" ? "Taglio Completo" : serviceType === "ASSISTED_WASH" ? "Taglio Assistito" : "Self-Service",
       }).catch(e => console.error("Errore notifica whatsapp:", e));
       
       // Ricarica le disponibilità generali
@@ -743,7 +743,7 @@ export default function PrenotaPage() {
           <div className="mx-auto w-44 max-w-full">
             <Image
               src="/logo.png"
-              alt="DogWash24 - Self Service Toilettatura"
+              alt="Taglio24 - Smart Booking"
               width={440}
               height={440}
               priority
@@ -759,8 +759,8 @@ export default function PrenotaPage() {
         </h2>
         <p className="text-sm leading-relaxed text-slate-400">
           {isLogged
-            ? "Seleziona il cane, il servizio, la data ed infine l'orario desiderato per bloccare il tuo slot."
-            : "Visualizza gli orari e le disponibilità delle nostre postazioni in tempo reale."}
+            ? "Seleziona il profilo, il servizio, la data ed infine l'orario desiderato per bloccare il tuo slot."
+            : "Visualizza gli orari e le disponibilità dei nostri servizi in tempo reale."}
         </p>
       </header>
 
@@ -772,14 +772,14 @@ export default function PrenotaPage() {
           <>
             {/* Colonna Configurazione (Sinistra) */}
             <div className="space-y-6 md:col-span-5">
-              {/* --- SELEZIONE CANE --- */}
+              {/* --- SELEZIONE PROFILO --- */}
               <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-blue-400">1. Il tuo cane</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-blue-400">1. Profilo cliente</p>
                     <p className="text-sm font-semibold text-slate-200">Per chi è la prenotazione?</p>
                   </div>
-                  <Link href="/cani/nuovo">
+                  <Link href="/profili/nuovo">
                     <Button size="md" variant="ghost" className="h-8 rounded-xl bg-slate-950/40 border border-slate-800 hover:bg-slate-800/50 text-xs text-slate-300 gap-1 cursor-pointer">
                       <Plus className="h-3.5 w-3.5" /> Aggiungi
                     </Button>
@@ -790,6 +790,13 @@ export default function PrenotaPage() {
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                     {dogs.map((dog) => {
                       const active = dog.id === selectedDogId;
+                      const sizeLabel = {
+                        SMALL: "capelli corti",
+                        MEDIUM: "capelli medi",
+                        LARGE: "capelli lunghi",
+                        GIANT: "capelli molto lunghi"
+                      }[dog.size] || dog.size;
+
                       return (
                         <button
                           key={dog.id}
@@ -802,11 +809,11 @@ export default function PrenotaPage() {
                               : "bg-slate-950/40 border-slate-800/60 text-slate-450 hover:bg-slate-900/40 hover:text-slate-200"
                           )}
                         >
-                          <PawPrint className={cn("h-4 w-4", active ? "text-blue-300 animate-pulse" : "text-slate-400")} />
+                          <Scissors className={cn("h-4 w-4", active ? "text-blue-300 animate-pulse" : "text-slate-400")} />
                           <div className="text-xs font-bold text-left">
                             <p>{dog.name}</p>
                             <p className="text-[9px] opacity-60 font-medium font-mono lowercase">
-                              {dog.size || "media"}
+                              {sizeLabel}
                             </p>
                           </div>
                         </button>
@@ -815,7 +822,7 @@ export default function PrenotaPage() {
                   </div>
                 ) : (
                   <div className="p-3 text-center rounded-2xl bg-slate-950/40 border border-slate-800/80 text-xs text-slate-400">
-                    Nessun cane registrato. <Link href="/cani/nuovo" className="text-blue-400 font-semibold underline">Aggiungine uno ora</Link> per iniziare.
+                    Nessun profilo registrato. <Link href="/profili/nuovo" className="text-blue-400 font-semibold underline">Aggiungine uno ora</Link> per iniziare.
                   </div>
                 )}
               </Card>
@@ -824,7 +831,7 @@ export default function PrenotaPage() {
               <Card className="backdrop-blur-xl bg-slate-900/40 border border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-3xl p-4 space-y-3">
                 <div className="space-y-0.5 text-left">
                   <p className="text-xs font-bold uppercase tracking-wider text-blue-400">2. Servizio</p>
-                  <p className="text-sm font-semibold text-slate-200">Scegli il servizio per il tuo cane</p>
+                  <p className="text-sm font-semibold text-slate-200">Scegli il servizio di taglio o styling</p>
                 </div>
 
                 <div className="grid gap-3">
@@ -1411,7 +1418,7 @@ export default function PrenotaPage() {
 
                   <div className="space-y-2 bg-slate-950/40 p-4 rounded-2xl border border-slate-900 shadow-inner text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-900">
-                      <span className="text-slate-400">Cane</span>
+                      <span className="text-slate-400">Profilo</span>
                       <span className="font-bold text-slate-200">{selectedDog?.name || "Nessuno"}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-900">
