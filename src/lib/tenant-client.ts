@@ -12,7 +12,7 @@ export function getSubdomainFromWindow(): string {
       return localParts[0] || "";
     }
   } else {
-    // Es: pawspa.dogwash24.it -> parts: ['pawspa', 'dogwash24', 'it']
+    // Es: pawspa.taglio24.it -> parts: ['pawspa', 'taglio24', 'it']
     const domainParts = host.split(".");
     if (domainParts.length >= 3) {
       const sub = domainParts[0] || "";
