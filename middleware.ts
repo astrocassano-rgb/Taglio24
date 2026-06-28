@@ -66,7 +66,7 @@ export async function middleware(request: NextRequest) {
           // Impostiamo il cookie del tenant corrente sulla response per il client
           response.cookies.set("current_tenant_id", tenant.id, {
             path: "/",
-            domain: host.includes("localhost") || host.includes("127.0.0.1") ? undefined : `.${process.env.TENANT_ROOT_DOMAIN || "app.dogwash24.it"}`,
+            domain: host.includes("localhost") || host.includes("127.0.0.1") ? undefined : `.${process.env.TENANT_ROOT_DOMAIN || "app.taglio24.it"}`,
             httpOnly: false,
             maxAge: 60 * 60 * 24 * 365,
           });
