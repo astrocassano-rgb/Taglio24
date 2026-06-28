@@ -6,7 +6,7 @@ const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   // Origini dev ammessi solo in locale — mai esposti in produzione
-  ...(isDev ? { allowedDevOrigins: ["localhost", "100.108.195.2"] } : {}),
+  ...(isDev ? { allowedDevOrigins: ["localhost", "100.108.195.2", "192.168.0.3"] } : {}),
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**.supabase.co" }]
   },
