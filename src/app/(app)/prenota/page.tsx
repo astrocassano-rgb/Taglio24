@@ -841,7 +841,7 @@ export default function PrenotaPage() {
                       ? Sparkles 
                       : srv.booking_type === "ASSISTED_WASH" 
                       ? Droplets 
-                      : PawPrint;
+                      : Scissors;
                     
                     const fixed = Number(srv.fixed_cost_credits);
                     const perMin = Number(srv.cost_per_minute_credits);
