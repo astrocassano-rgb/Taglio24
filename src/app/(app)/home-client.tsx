@@ -37,6 +37,11 @@ export default function HomeClient() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [canResend, setCanResend] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!supabase) {
@@ -241,6 +246,10 @@ export default function HomeClient() {
 
     void loadDashboard();
   }, [supabase, userId]);
+
+  if (!hasMounted) {
+    return <div className="p-4 text-center text-sm text-slate-400">Caricamento in corso...</div>;
+  }
 
   if (loading) {
     return <div className="p-4 text-center text-sm text-slate-400">Caricamento in corso...</div>;
